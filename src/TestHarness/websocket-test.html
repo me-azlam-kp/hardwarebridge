@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hardware Bridge WebSocket Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+        .error { background-color: #fff3cd; color: #856404; }
+        .log { background-color: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 5px; font-family: monospace; white-space: pre-wrap; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        input { padding: 8px; margin: 5px; width: 300px; }
+    </style>
+</head>
+<body>
+    <h1>Hardware Bridge WebSocket Test</h1>
+    
+    <div id="status" class="status disconnected">Disconnected</div>
+    
+    <div>
+        <label>Server URL: </label>
+        <input type="text" id="serverUrl" value="ws://localhost:9443" />
+        <button onclick="connect()">Connect</button>
+        <button onclick="disconnect()">Disconnect</button>
+    </div>
+    
+    <div>
+        <h3>Test Commands:</h3>
+        <button onclick="testSystemInfo()">Get System Info</button>
+        <button onclick="testQueueStatus()">Get Queue Status</button>
+        <button onclick="testEnumerateDevices()">Enumerate Devices</button>
+    </div>
+    
+    <div>
+        <h3>Custom JSON-RPC Request:</h3>
+        <textarea id="customRequest" rows="4" cols="50">{
+  "jsonrpc": "2.0",
+  "method": "system.getInfo",
+  "id": 1
+}</textarea><br>
+        <button onclick="sendCustomRequest()">Send Custom Request</button>
+    </div>
+    
+    <h3>Response Log:</h3>
+    <div id="log" class="log">Ready to test WebSocket connection...</div>
+
+    <script>
+        let ws = null;
+        let requestId = 1;
+
+        function updateStatus(message, className) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + className;
+        }
+
+        function log(message) {
+            const log = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            log.textContent += `[${timestamp}] ${message}\n`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function connect() {
+            if (ws) {
+                log('Already connected');
+                return;
+            }
+
+            const url = document.getElementById('serverUrl').value;
+            log('Connecting to ' + url + '...');
+            
+            try {
+                ws = new WebSocket(url);
+                
+                ws.onopen = function() {
+                    updateStatus('Connected', 'connected');
+                    log('WebSocket connected successfully!');
+                };
+                
+                ws.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        log('Received: ' + JSON.stringify(data, null, 2));
+                    } catch (e) {
+                        log('Received (raw): ' + event.data);
+                    }
+                };
+                
+                ws.onerror = function(error) {
+                    updateStatus('Error', 'error');
+                    log('WebSocket error: ' + error);
+                };
+                
+                ws.onclose = function() {
+                    updateStatus('Disconnected', 'disconnected');
+                    log('WebSocket disconnected');
+                    ws = null;
+                };
+            } catch (error) {
+                log('Connection failed: ' + error.message);
+                updateStatus('Connection Failed', 'error');
+            }
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            } else {
+                log('Not connected');
+            }
+        }
+
+        function sendRequest(method, params = {}) {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                log('Not connected to server');
+                return;
+            }
+
+            const request = {
+                jsonrpc: '2.0',
+                method: method,
+                params: params,
+                id: requestId++
+            };
+
+            log('Sending: ' + JSON.stringify(request, null, 2));
+            ws.send(JSON.stringify(request));
+        }
+
+        function testSystemInfo() {
+            sendRequest('system.getInfo');
+        }
+
+        function testQueueStatus() {
+            sendRequest('queue.getStatus');
+        }
+
+        function testEnumerateDevices() {
+            sendRequest('devices.enumerate');
+        }
+
+        function sendCustomRequest() {
+            try {
+                const requestText = document.getElementById('customRequest').value;
+                const request = JSON.parse(requestText);
+                
+                if (!ws || ws.readyState !== WebSocket.OPEN) {
+                    log('Not connected to server');
+                    return;
+                }
+
+                log('Sending custom request: ' + JSON.stringify(request, null, 2));
+                ws.send(JSON.stringify(request));
+            } catch (error) {
+                log('Invalid JSON: ' + error.message);
+            }
+        }
+
+        // Auto-connect on page load
+        window.onload = function() {
+            setTimeout(connect, 1000);
+        };
+    </script>
+</body>
+</html>

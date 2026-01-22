@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hardware Bridge Test Harness</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-connected { background-color: #28a745; }
+        .status-disconnected { background-color: #dc3545; }
+        .status-connecting { background-color: #ffc107; }
+        .status-error { background-color: #6c757d; }
+        
+        .device-card {
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .device-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .log-entry {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            padding: 2px 0;
+        }
+        
+        .log-info { color: #17a2b8; }
+        .log-success { color: #28a745; }
+        .log-warning { color: #ffc107; }
+        .log-error { color: #dc3545; }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+        
+        .connection-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .device-type-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+        
+        .printer-badge { background-color: #e3f2fd; color: #1976d2; }
+        .serial-badge { background-color: #f3e5f5; color: #7b1fa2; }
+        .usb-badge { background-color: #e8f5e8; color: #388e3c; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row">
+            <div class="col-12">
+                <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+                    <div class="container-fluid">
+                        <a class="navbar-brand" href="#">
+                            <i class="fas fa-microchip me-2"></i>
+                            Hardware Bridge Test Harness
+                        </a>
+                        <div class="navbar-nav ms-auto">
+                            <span class="navbar-text me-3" id="connectionStatus">
+                                <span class="status-indicator status-disconnected"></span>
+                                Disconnected
+                            </span>
+                            <button class="btn btn-outline-light btn-sm" id="connectBtn">
+                                <i class="fas fa-plug me-1"></i>
+                                Connect
+                            </button>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Connection Panel -->
+        <div class="row">
+            <div class="col-12">
+                <div class="connection-panel">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h4><i class="fas fa-server me-2"></i>WebSocket Connection</h4>
+                            <div class="mb-2">
+                                <label class="form-label">Server URL:</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="serverUrl" value="wss://localhost:8443">
+                                    <button class="btn btn-outline-light" type="button" id="testConnectionBtn">
+                                        <i class="fas fa-bolt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Connection Statistics</h5>
+                            <div class="row">
+                                <div class="col-6">
+                                    <small>Uptime:</small>
+                                    <div id="uptime">00:00:00</div>
+                                </div>
+                                <div class="col-6">
+                                    <small>Messages:</small>
+                                    <div id="messageCount">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Device Discovery Panel -->
+            <div class="col-lg-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-search me-2"></i>
+                            Device Discovery
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <button class="btn btn-primary btn-sm me-2" id="refreshDevicesBtn">
+                                <i class="fas fa-sync-alt me-1"></i>
+                                Refresh
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" id="watchDevicesBtn">
+                                <i class="fas fa-eye me-1"></i>
+                                Watch
+                            </button>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">Filter</span>
+                                <select class="form-select" id="deviceTypeFilter">
+                                    <option value="">All Types</option>
+                                    <option value="printer">Printers</option>
+                                    <option value="serial">Serial Ports</option>
+                                    <option value="usbhid">USB HID</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="devicesList" class="device-list">
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Click "Refresh" to discover devices
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Device Operations Panel -->
+            <div class="col-lg-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-cogs me-2"></i>
+                            Device Operations
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="deviceOperations" class="device-operations">
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-hand-pointer me-2"></i>
+                                Select a device to view operations
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time Monitoring Panel -->
+            <div class="col-lg-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Real-time Monitoring
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="stats-card">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">System Health</h6>
+                                        <small class="text-muted">Overall status</small>
+                                    </div>
+                                    <div id="systemHealth" class="text-success">
+                                        <i class="fas fa-check-circle"></i> Healthy
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chart-container">
+                            <canvas id="throughputChart"></canvas>
+                        </div>
+
+                        <div class="mt-3">
+                            <h6>Recent Events</h6>
+                            <div id="eventLog" class="event-log" style="max-height: 200px; overflow-y: auto;">
+                                <div class="log-entry log-info">
+                                    <small>System initialized</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Queue Management Panel -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-tasks me-2"></i>
+                            Queue Management
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-outline-primary btn-sm" id="refreshQueueBtn">
+                                        <i class="fas fa-sync-alt me-1"></i>
+                                        Refresh
+                                    </button>
+                                    <button class="btn btn-outline-success btn-sm" id="processNextBtn">
+                                        <i class="fas fa-play me-1"></i>
+                                        Process Next
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm" id="cancelJobBtn">
+                                        <i class="fas fa-stop me-1"></i>
+                                        Cancel Selected
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex justify-content-end align-items-center">
+                                    <span class="me-3">Queue Status:</span>
+                                    <span id="queueStats" class="badge bg-secondary">0 total, 0 pending</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover" id="queueTable">
+                                <thead>
+                                    <tr>
+                                        <th>Job ID</th>
+                                        <th>Device ID</th>
+                                        <th>Operation</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Started</th>
+                                        <th>Completed</th>
+                                        <th>Retries</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="queueTableBody">
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            No jobs in queue
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Print Job Panel -->
+        <div class="row mt-4">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-print me-2"></i>
+                            Print Job Submission
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="printJobForm">
+                            <div class="mb-3">
+                                <label class="form-label">Printer Device:</label>
+                                <select class="form-select" id="printerDeviceSelect" required>
+                                    <option value="">Select a printer...</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Print Format:</label>
+                                <select class="form-select" id="printFormat" required>
+                                    <option value="raw">Raw</option>
+                                    <option value="escpos">ESC/POS</option>
+                                    <option value="zpl">ZPL</option>
+                                    <option value="epl">EPL</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Print Data:</label>
+                                <textarea class="form-control" id="printData" rows="6" 
+                                    placeholder="Enter print data (text, hex, or format-specific commands)" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>
+                                Submit Print Job
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-terminal me-2"></i>
+                            Serial Port Communication
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="serialCommForm">
+                            <div class="mb-3">
+                                <label class="form-label">Serial Port:</label>
+                                <select class="form-select" id="serialPortSelect" required>
+                                    <option value="">Select a serial port...</option>
+                                </select>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="form-label">Baud Rate:</label>
+                                    <select class="form-select" id="baudRate">
+                                        <option value="9600">9600</option>
+                                        <option value="19200">19200</option>
+                                        <option value="38400">38400</option>
+                                        <option value="57600">57600</option>
+                                        <option value="115200" selected>115200</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">Data Bits:</label>
+                                    <select class="form-select" id="dataBits">
+                                        <option value="7">7</option>
+                                        <option value="8" selected>8</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Data to Send:</label>
+                                <textarea class="form-control" id="serialData" rows="3" 
+                                    placeholder="Enter data to send..."></textarea>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-success" id="openSerialBtn">
+                                    <i class="fas fa-door-open me-1"></i>
+                                    Open
+                                </button>
+                                <button type="button" class="btn btn-warning" id="closeSerialBtn" disabled>
+                                    <i class="fas fa-door-closed me-1"></i>
+                                    Close
+                                </button>
+                                <button type="button" class="btn btn-primary" id="sendSerialBtn" disabled>
+                                    <i class="fas fa-paper-plane me-1"></i>
+                                    Send
+                                </button>
+                                <button type="button" class="btn btn-info" id="receiveSerialBtn" disabled>
+                                    <i class="fas fa-download me-1"></i>
+                                    Receive
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- USB HID Panel -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-usb me-2"></i>
+                            USB HID Device Communication
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-4">
+                                <div class="mb-3">
+                                    <label class="form-label">USB HID Device:</label>
+                                    <select class="form-select" id="usbDeviceSelect" required>
+                                        <option value="">Select a USB HID device...</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Report ID:</label>
+                                    <input type="number" class="form-control" id="usbReportId" value="0" min="0" max="255">
+                                </div>
+                                <div class="d-flex gap-2 mb-3">
+                                    <button type="button" class="btn btn-success" id="openUsbBtn">
+                                        <i class="fas fa-plug me-1"></i>
+                                        Open
+                                    </button>
+                                    <button type="button" class="btn btn-warning" id="closeUsbBtn" disabled>
+                                        <i class="fas fa-eject me-1"></i>
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Data to Send (Hex):</label>
+                                    <textarea class="form-control" id="usbSendData" rows="4" 
+                                        placeholder="Enter hex data (e.g., 01 02 03 04)"></textarea>
+                                </div>
+                                <button type="button" class="btn btn-primary w-100" id="sendUsbReportBtn" disabled>
+                                    <i class="fas fa-paper-plane me-1"></i>
+                                    Send Report
+                                </button>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Received Data:</label>
+                                    <textarea class="form-control" id="usbReceiveData" rows="4" readonly 
+                                        placeholder="Received data will appear here..."></textarea>
+                                </div>
+                                <button type="button" class="btn btn-info w-100" id="receiveUsbReportBtn" disabled>
+                                    <i class="fas fa-download me-1"></i>
+                                    Receive Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <hr>
+                <div class="text-center text-muted mb-4">
+                    <small>
+                        Hardware Bridge Test Harness v1.0.0 | 
+                        <a href="#" class="text-decoration-none" onclick="showAbout()">About</a> | 
+                        <a href="#" class="text-decoration-none" onclick="showHelp()">Help</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
