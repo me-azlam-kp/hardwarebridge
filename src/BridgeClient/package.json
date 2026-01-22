@@ -38,7 +38,7 @@
     "typescript",
     "rxjs"
   ],
-  "author": "Hardware Bridge Team",
+  "author": "Azlam",
   "license": "MIT",
   "dependencies": {
     "rxjs": "^7.0.0",
@@ -69,10 +69,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/hardwarebridge/client.git"
+    "url": "https://github.com/me-azlam-kp/hardwarebridge.git",
+    "directory": "src/BridgeClient"
   },
   "bugs": {
-    "url": "https://github.com/hardwarebridge/client/issues"
+    "url": "https://github.com/me-azlam-kp/hardwarebridge/issues"
   },
-  "homepage": "https://github.com/hardwarebridge/client#readme"
+  "homepage": "https://github.com/me-azlam-kp/hardwarebridge#readme"
 }

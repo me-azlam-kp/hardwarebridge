@@ -305,4 +305,4 @@ For support and questions:
 
 ---
 
-**Built with ❤️ for hardware automation enthusiasts**
+**Developed by Azlam**

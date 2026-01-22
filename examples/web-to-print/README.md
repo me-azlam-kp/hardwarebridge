@@ -300,4 +300,4 @@ MIT License - see LICENSE file for details.
 
 **Happy Printing!** 🖨️✨
 
-**Made with ❤️ by the Hardware Bridge Team**
+**Developed by Azlam**
