@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:BridgeUI.ViewModels"
+             x:Class="BridgeUI.Views.LoggingPage"
+             x:DataType="vm:LoggingViewModel"
+             Title="Logging"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="0">
+
+            <!-- Page Header -->
+            <Grid HeightRequest="100" Padding="30,0">
+                <Grid.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0.5">
+                        <GradientStop Color="{AppThemeBinding Light={StaticResource GradientStart}, Dark={StaticResource GradientStartDark}}" Offset="0.0" />
+                        <GradientStop Color="{AppThemeBinding Light={StaticResource GradientEnd}, Dark={StaticResource GradientEndDark}}" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Grid.Background>
+                <VerticalStackLayout VerticalOptions="Center">
+                    <Label Text="Logging Configuration" FontSize="22" FontFamily="OpenSansSemibold" TextColor="White" />
+                    <Label Text="Configure log outputs and retention" FontSize="13" TextColor="#CCFFFFFF" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <VerticalStackLayout Padding="24,24" Spacing="20">
+
+                <!-- Log Level Card -->
+                <Border Style="{StaticResource DashboardCard}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Log Level" Style="{StaticResource SectionHeader}" />
+                        <BoxView Style="{StaticResource Separator}" />
+                        <Grid ColumnDefinitions="160,*">
+                            <Label Text="Minimum Level" VerticalOptions="Center" Style="{StaticResource BodyText}" />
+                            <Border Style="{StaticResource ModernEntryBorder}" Grid.Column="1" HorizontalOptions="Start">
+                                <Picker ItemsSource="{Binding LogLevels}" SelectedItem="{Binding LogLevel}" WidthRequest="200" />
+                            </Border>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Log Outputs Card -->
+                <Border Style="{StaticResource DashboardCard}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Log Outputs" Style="{StaticResource SectionHeader}" />
+                        <BoxView Style="{StaticResource Separator}" />
+                        <VerticalStackLayout Spacing="14">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                <Switch IsToggled="{Binding EnableConsole}" />
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="Console Output" Style="{StaticResource BodyText}" />
+                                    <Label Text="Write logs to stdout" Style="{StaticResource Caption}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                            <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource CardStroke}, Dark={StaticResource CardStrokeDark}}" />
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                <Switch IsToggled="{Binding EnableFile}" />
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="File Output" Style="{StaticResource BodyText}" />
+                                    <Label Text="Write logs to rotating files" Style="{StaticResource Caption}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                            <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource CardStroke}, Dark={StaticResource CardStrokeDark}}" />
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                <Switch IsToggled="{Binding EnableEventLog}" />
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="Event Log" Style="{StaticResource BodyText}" />
+                                    <Label Text="Windows Event Log (Windows only)" Style="{StaticResource Caption}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- File Settings Card -->
+                <Border Style="{StaticResource DashboardCard}" IsVisible="{Binding EnableFile}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="File Settings" Style="{StaticResource SectionHeader}" />
+                        <BoxView Style="{StaticResource Separator}" />
+                        <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="14">
+                            <Label Text="Log Path" VerticalOptions="Center" Style="{StaticResource BodyText}" Grid.Row="0" />
+                            <Border Style="{StaticResource ModernEntryBorder}" Grid.Row="0" Grid.Column="1">
+                                <Entry Text="{Binding LogPath}" />
+                            </Border>
+
+                            <Label Text="Max File Size (MB)" VerticalOptions="Center" Style="{StaticResource BodyText}" Grid.Row="1" />
+                            <Border Style="{StaticResource ModernEntryBorder}" Grid.Row="1" Grid.Column="1" HorizontalOptions="Start">
+                                <Entry Text="{Binding MaxFileSizeMb}" Keyboard="Numeric" WidthRequest="100" />
+                            </Border>
+
+                            <Label Text="Max Retained Files" VerticalOptions="Center" Style="{StaticResource BodyText}" Grid.Row="2" />
+                            <Border Style="{StaticResource ModernEntryBorder}" Grid.Row="2" Grid.Column="1" HorizontalOptions="Start">
+                                <Entry Text="{Binding MaxRetainedFiles}" Keyboard="Numeric" WidthRequest="100" />
+                            </Border>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Action Buttons -->
+                <HorizontalStackLayout Spacing="12">
+                    <Button Text="Load Settings" Style="{StaticResource SecondaryButton}" Command="{Binding LoadSettingsCommand}" />
+                    <Button Text="Save Settings" Style="{StaticResource PrimaryButton}" Command="{Binding SaveSettingsCommand}" />
+                </HorizontalStackLayout>
+
+                <Label Text="{Binding StatusText}" Style="{StaticResource Caption}" />
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

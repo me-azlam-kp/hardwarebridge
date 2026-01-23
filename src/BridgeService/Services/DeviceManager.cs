@@ -217,12 +217,15 @@ namespace HardwareBridge.Services
                 var config = _config.CurrentValue.Device;
                 var discoveredDevices = new List<DeviceInfo>();
 
-                // Discover printers
+                // Discover printers (Windows-only)
                 if (config.EnablePrinterDiscovery)
                 {
-                    var printerManager = _serviceProvider.GetRequiredService<IPrinterManager>();
-                    var printers = await printerManager.DiscoverPrintersAsync();
-                    discoveredDevices.AddRange(printers);
+                    var printerManager = _serviceProvider.GetService<IPrinterManager>();
+                    if (printerManager != null)
+                    {
+                        var printers = await printerManager.DiscoverPrintersAsync();
+                        discoveredDevices.AddRange(printers);
+                    }
                 }
 
                 // Discover serial ports
@@ -233,12 +236,31 @@ namespace HardwareBridge.Services
                     discoveredDevices.AddRange(serialPorts);
                 }
 
-                // Discover USB HID devices
+                // Discover USB HID devices (Windows-only)
                 if (config.EnableUsbHidDiscovery)
                 {
-                    var usbHidManager = _serviceProvider.GetRequiredService<IUsbHidManager>();
-                    var usbDevices = await usbHidManager.DiscoverUsbHidDevicesAsync();
-                    discoveredDevices.AddRange(usbDevices);
+                    var usbHidManager = _serviceProvider.GetService<IUsbHidManager>();
+                    if (usbHidManager != null)
+                    {
+                        var usbDevices = await usbHidManager.DiscoverUsbHidDevicesAsync();
+                        discoveredDevices.AddRange(usbDevices);
+                    }
+                }
+
+                // Include connected network devices
+                if (config.EnableNetworkDiscovery)
+                {
+                    var networkManager = _serviceProvider.GetRequiredService<INetworkDeviceManager>();
+                    var networkDevices = await networkManager.GetConnectedDevicesAsync();
+                    discoveredDevices.AddRange(networkDevices);
+                }
+
+                // Include biometric devices
+                if (config.EnableBiometricDiscovery)
+                {
+                    var biometricManager = _serviceProvider.GetRequiredService<IBiometricManager>();
+                    var biometricDevices = await biometricManager.DiscoverBiometricDevicesAsync();
+                    discoveredDevices.AddRange(biometricDevices);
                 }
 
                 // Update device cache
@@ -373,22 +395,32 @@ namespace HardwareBridge.Services
 
                 // Connect based on device type
                 bool connected = false;
-                
+
                 switch (device.Type)
                 {
                     case "printer":
-                        var printerManager = _serviceProvider.GetRequiredService<IPrinterManager>();
-                        connected = await printerManager.ConnectAsync(deviceId);
+                        var printerManager = _serviceProvider.GetService<IPrinterManager>();
+                        connected = printerManager != null && await printerManager.ConnectAsync(deviceId);
                         break;
-                        
+
                     case "serial":
                         var serialPortManager = _serviceProvider.GetRequiredService<ISerialPortManager>();
                         connected = await serialPortManager.ConnectAsync(deviceId);
                         break;
-                        
+
                     case "usbhid":
-                        var usbHidManager = _serviceProvider.GetRequiredService<IUsbHidManager>();
-                        connected = await usbHidManager.ConnectAsync(deviceId);
+                        var usbHidManager = _serviceProvider.GetService<IUsbHidManager>();
+                        connected = usbHidManager != null && await usbHidManager.ConnectAsync(deviceId);
+                        break;
+
+                    case "network":
+                        // Network devices are connected via INetworkDeviceManager directly
+                        connected = true;
+                        break;
+
+                    case "biometric":
+                        // Biometric devices are managed via IBiometricManager directly
+                        connected = true;
                         break;
                 }
 
@@ -463,22 +495,32 @@ namespace HardwareBridge.Services
 
                 // Disconnect based on device type
                 bool disconnected = false;
-                
+
                 switch (connection.DeviceType)
                 {
                     case "printer":
-                        var printerManager = _serviceProvider.GetRequiredService<IPrinterManager>();
-                        disconnected = await printerManager.DisconnectAsync(connection.DeviceId);
+                        var printerManager = _serviceProvider.GetService<IPrinterManager>();
+                        disconnected = printerManager != null && await printerManager.DisconnectAsync(connection.DeviceId);
                         break;
-                        
+
                     case "serial":
                         var serialPortManager = _serviceProvider.GetRequiredService<ISerialPortManager>();
                         disconnected = await serialPortManager.DisconnectAsync(connection.DeviceId);
                         break;
-                        
+
                     case "usbhid":
-                        var usbHidManager = _serviceProvider.GetRequiredService<IUsbHidManager>();
-                        disconnected = await usbHidManager.DisconnectAsync(connection.DeviceId);
+                        var usbHidManager = _serviceProvider.GetService<IUsbHidManager>();
+                        disconnected = usbHidManager != null && await usbHidManager.DisconnectAsync(connection.DeviceId);
+                        break;
+
+                    case "network":
+                        var networkManager = _serviceProvider.GetRequiredService<INetworkDeviceManager>();
+                        var networkResult = await networkManager.DisconnectAsync(connection.DeviceId);
+                        disconnected = networkResult.Success;
+                        break;
+
+                    case "biometric":
+                        disconnected = true;
                         break;
                 }
 

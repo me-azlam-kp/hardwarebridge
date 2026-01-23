@@ -7,7 +7,7 @@ namespace HardwareBridge.Models
     {
         public string Id { get; set; }
         public string Name { get; set; }
-        public string Type { get; set; } // "printer", "serial", "usbhid"
+        public string Type { get; set; } // "printer", "serial", "usbhid", "network", "biometric"
         public string Status { get; set; } // "available", "connected", "error"
         public string Manufacturer { get; set; }
         public string Model { get; set; }
@@ -67,6 +67,34 @@ namespace HardwareBridge.Models
         public int OutputReportLength { get; set; }
         public int FeatureReportLength { get; set; }
         public bool IsOpen { get; set; }
+    }
+
+    public class NetworkDevice : DeviceInfo
+    {
+        public NetworkDevice()
+        {
+            Type = "network";
+        }
+
+        public string Host { get; set; }
+        public int Port { get; set; }
+        public string Protocol { get; set; } = "tcp";
+        public long BytesSent { get; set; }
+        public long BytesReceived { get; set; }
+        public long ResponseTime { get; set; }
+    }
+
+    public class BiometricDevice : DeviceInfo
+    {
+        public BiometricDevice()
+        {
+            Type = "biometric";
+        }
+
+        public string[] SupportedModes { get; set; } = new[] { "verify", "identify", "enroll" };
+        public int EnrolledUsers { get; set; }
+        public int MaxUsers { get; set; } = 1000;
+        public string BiometricType { get; set; } = "fingerprint";
     }
 
     public class DeviceConnection

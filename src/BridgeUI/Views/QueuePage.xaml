@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:BridgeUI.ViewModels"
+             xmlns:models="clr-namespace:BridgeUI.Models"
+             x:Class="BridgeUI.Views.QueuePage"
+             x:DataType="vm:QueueViewModel"
+             Title="Queue"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- Page Header -->
+        <Grid HeightRequest="100" Padding="30,0" Grid.Row="0">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0.5">
+                    <GradientStop Color="{AppThemeBinding Light={StaticResource GradientStart}, Dark={StaticResource GradientStartDark}}" Offset="0.0" />
+                    <GradientStop Color="{AppThemeBinding Light={StaticResource GradientEnd}, Dark={StaticResource GradientEndDark}}" Offset="1.0" />
+                </LinearGradientBrush>
+            </Grid.Background>
+            <Grid ColumnDefinitions="*,Auto">
+                <VerticalStackLayout VerticalOptions="Center">
+                    <Label Text="Job Queue" FontSize="22" FontFamily="OpenSansSemibold" TextColor="White" />
+                    <Label Text="Monitor and manage queued operations" FontSize="13" TextColor="#CCFFFFFF" />
+                </VerticalStackLayout>
+                <Button Text="Refresh" Style="{StaticResource SecondaryButton}"
+                        BorderColor="White" TextColor="White"
+                        Grid.Column="1" VerticalOptions="Center"
+                        Command="{Binding RefreshQueueCommand}" />
+            </Grid>
+        </Grid>
+
+        <!-- Stat Cards Row -->
+        <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="16" Grid.Row="1" Margin="24,16,24,0">
+            <Border Style="{StaticResource StatCard}" Grid.Column="0">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Pending" Style="{StaticResource StatLabel}" />
+                    <Label Text="{Binding PendingCount}" Style="{StaticResource StatValue}"
+                           TextColor="{AppThemeBinding Light={StaticResource Info}, Dark={StaticResource InfoDark}}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource StatCard}" Grid.Column="1">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Processing" Style="{StaticResource StatLabel}" />
+                    <Label Text="{Binding ProcessingCount}" Style="{StaticResource StatValue}"
+                           TextColor="{AppThemeBinding Light={StaticResource Warning}, Dark={StaticResource WarningDark}}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource StatCard}" Grid.Column="2">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Completed" Style="{StaticResource StatLabel}" />
+                    <Label Text="{Binding CompletedCount}" Style="{StaticResource StatValue}"
+                           TextColor="{AppThemeBinding Light={StaticResource Success}, Dark={StaticResource SuccessDark}}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource StatCard}" Grid.Column="3">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Failed" Style="{StaticResource StatLabel}" />
+                    <Label Text="{Binding FailedCount}" Style="{StaticResource StatValue}"
+                           TextColor="{AppThemeBinding Light={StaticResource Error}, Dark={StaticResource ErrorDark}}" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <!-- Queue List -->
+        <CollectionView Grid.Row="2" ItemsSource="{Binding Jobs}" Margin="24,16,24,0">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:QueueJob">
+                    <Border Style="{StaticResource DashboardCard}" Margin="0,0,0,12">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+                            <!-- Status color strip -->
+                            <Border WidthRequest="4" StrokeShape="RoundRectangle 2" StrokeThickness="0"
+                                    VerticalOptions="Fill"
+                                    BackgroundColor="{Binding Status, Converter={StaticResource StatusToColorConverter}}" />
+
+                            <!-- Job info -->
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <Label Text="{Binding Id}" Style="{StaticResource CardTitle}" />
+                                <HorizontalStackLayout Spacing="8">
+                                    <Label Text="{Binding DeviceId}" Style="{StaticResource Caption}" />
+                                    <Label Text="|" Style="{StaticResource Caption}" />
+                                    <Label Text="{Binding Operation}" Style="{StaticResource Caption}" />
+                                </HorizontalStackLayout>
+                                <HorizontalStackLayout Spacing="8">
+                                    <Border StrokeShape="RoundRectangle 8" StrokeThickness="0" Padding="8,2"
+                                            BackgroundColor="{Binding Status, Converter={StaticResource StatusToBgConverter}}">
+                                        <Label Text="{Binding Status}" FontSize="11"
+                                               TextColor="{Binding Status, Converter={StaticResource StatusToColorConverter}}" />
+                                    </Border>
+                                    <Label Text="{Binding CreatedAt, StringFormat='Created: {0:HH:mm:ss}'}"
+                                           Style="{StaticResource Caption}" VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+
+                            <!-- Cancel button -->
+                            <Button Text="Cancel" Style="{StaticResource DangerButton}" Grid.Column="2" VerticalOptions="Center"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:QueueViewModel}}, Path=CancelJobCommand}"
+                                    CommandParameter="{Binding Id}" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+            <CollectionView.EmptyView>
+                <Border Style="{StaticResource ElevatedCard}" HorizontalOptions="Center" VerticalOptions="Center" Margin="0,60">
+                    <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                        <Label Text="Queue Empty" Style="{StaticResource SectionHeader}" HorizontalOptions="Center" />
+                        <Label Text="No jobs currently in the queue." Style="{StaticResource BodyText}" HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Border>
+            </CollectionView.EmptyView>
+        </CollectionView>
+
+        <!-- Status -->
+        <Label Text="{Binding StatusText}" Grid.Row="3" Style="{StaticResource Caption}" Margin="28,8,28,16" />
+    </Grid>
+
+</ContentPage>

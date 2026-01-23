@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HardwareBridge.Models;
@@ -122,11 +123,12 @@ namespace HardwareBridge.Services
                 _logger.LogInformation("Opening serial port: {DeviceId} with config {@Config}", deviceId, config);
                 
                 await _connectionSemaphore.WaitAsync();
-                
+
+                string portName = null;
                 try
                 {
                     // Extract port name from device ID
-                    var portName = ExtractPortNameFromDeviceId(deviceId);
+                    portName = ExtractPortNameFromDeviceId(deviceId);
                     if (string.IsNullOrEmpty(portName))
                     {
                         throw new ArgumentException($"Invalid device ID: {deviceId}");

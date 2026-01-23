@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:BridgeUI.ViewModels"
+             x:Class="BridgeUI.Views.GeneralPage"
+             x:DataType="vm:GeneralViewModel"
+             Title="Dashboard"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="0">
+
+            <!-- Gradient Hero Header -->
+            <Grid HeightRequest="140" Padding="30,20">
+                <Grid.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0.5">
+                        <GradientStop Color="{AppThemeBinding Light={StaticResource GradientStart}, Dark={StaticResource GradientStartDark}}" Offset="0.0" />
+                        <GradientStop Color="{AppThemeBinding Light={StaticResource GradientEnd}, Dark={StaticResource GradientEndDark}}" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Grid.Background>
+
+                <Grid ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout VerticalOptions="Center" Spacing="8">
+                        <Label Text="Hardware Bridge" FontSize="24" FontFamily="OpenSansSemibold" TextColor="White" />
+                        <Border StrokeShape="RoundRectangle 10" StrokeThickness="0" Padding="10,4"
+                                BackgroundColor="{Binding IsConnected, Converter={StaticResource BoolToStatusBgConverter}}"
+                                HorizontalOptions="Start">
+                            <Label Text="{Binding ConnectionStatus}" FontSize="12" TextColor="White" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Connection controls -->
+                    <HorizontalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="8">
+                        <Border StrokeShape="RoundRectangle 8" StrokeThickness="0" Padding="12,8"
+                                BackgroundColor="#30FFFFFF">
+                            <Entry Text="{Binding ServiceHost}" WidthRequest="130" TextColor="White"
+                                   PlaceholderColor="#80FFFFFF" FontSize="13" />
+                        </Border>
+                        <Border StrokeShape="RoundRectangle 8" StrokeThickness="0" Padding="12,8"
+                                BackgroundColor="#30FFFFFF">
+                            <Entry Text="{Binding ServicePort}" WidthRequest="65" Keyboard="Numeric"
+                                   TextColor="White" FontSize="13" />
+                        </Border>
+                        <Button Text="Connect" Style="{StaticResource SecondaryButton}"
+                                BorderColor="White" TextColor="White"
+                                Command="{Binding ConnectToServiceCommand}"
+                                IsVisible="{Binding IsConnected, Converter={StaticResource InverseBoolConverter}}" />
+                        <Button Text="Disconnect" Style="{StaticResource DangerButton}"
+                                Command="{Binding DisconnectFromServiceCommand}"
+                                IsVisible="{Binding IsConnected}" />
+                    </HorizontalStackLayout>
+                </Grid>
+            </Grid>
+
+            <!-- Content Area -->
+            <VerticalStackLayout Padding="24,24" Spacing="20">
+
+                <!-- Stat Cards Row -->
+                <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="16">
+                    <Border Style="{StaticResource StatCard}" Grid.Column="0">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Version" Style="{StaticResource StatLabel}" />
+                            <Label Text="{Binding ServiceVersion}" Style="{StaticResource StatValue}" FontSize="20" />
+                            <Label Text="{Binding Platform}" Style="{StaticResource Caption}" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Style="{StaticResource StatCard}" Grid.Column="1">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Uptime" Style="{StaticResource StatLabel}" />
+                            <Label Text="{Binding Uptime}" Style="{StaticResource StatValue}" FontSize="20" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Style="{StaticResource StatCard}" Grid.Column="2">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Devices" Style="{StaticResource StatLabel}" />
+                            <Label Text="{Binding ConnectedDeviceCount}" Style="{StaticResource StatValue}" />
+                            <Label Text="connected" Style="{StaticResource Caption}" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Style="{StaticResource StatCard}" Grid.Column="3">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Connections" Style="{StaticResource StatLabel}" />
+                            <Label Text="{Binding ActiveConnectionCount}" Style="{StaticResource StatValue}" />
+                            <Label Text="active" Style="{StaticResource Caption}" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- Device Discovery Card -->
+                <Border Style="{StaticResource DashboardCard}">
+                    <VerticalStackLayout Spacing="16">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Device Discovery" Style="{StaticResource SectionHeader}" />
+                            <Button Text="Save Settings" Style="{StaticResource PrimaryButton}"
+                                    Grid.Column="1" Command="{Binding SaveSettingsCommand}" />
+                        </Grid>
+                        <BoxView Style="{StaticResource Separator}" />
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="14" ColumnSpacing="20">
+                            <HorizontalStackLayout Spacing="12" Grid.Row="0" Grid.Column="0">
+                                <Switch IsToggled="{Binding EnablePrinterDiscovery}" />
+                                <Label Text="Printer Discovery" VerticalOptions="Center" Style="{StaticResource BodyText}" />
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="12" Grid.Row="0" Grid.Column="1">
+                                <Switch IsToggled="{Binding EnableSerialDiscovery}" />
+                                <Label Text="Serial Port Discovery" VerticalOptions="Center" Style="{StaticResource BodyText}" />
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="12" Grid.Row="1" Grid.Column="0">
+                                <Switch IsToggled="{Binding EnableUsbHidDiscovery}" />
+                                <Label Text="USB HID Discovery" VerticalOptions="Center" Style="{StaticResource BodyText}" />
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="12" Grid.Row="1" Grid.Column="1">
+                                <Switch IsToggled="{Binding EnableNetworkDiscovery}" />
+                                <Label Text="Network Discovery" VerticalOptions="Center" Style="{StaticResource BodyText}" />
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="12" Grid.Row="2" Grid.Column="0">
+                                <Switch IsToggled="{Binding EnableBiometricDiscovery}" />
+                                <Label Text="Biometric Discovery" VerticalOptions="Center" Style="{StaticResource BodyText}" />
+                            </HorizontalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Button Text="Refresh" Style="{StaticResource SecondaryButton}" HorizontalOptions="Start"
+                        Command="{Binding RefreshCommand}" />
+
+                <Label Text="{Binding StatusText}" Style="{StaticResource Caption}" Margin="4,0" />
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

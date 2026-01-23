@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="BridgeUI.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:BridgeUI.Views"
+    Title="Hardware Bridge"
+    FlyoutBehavior="Locked"
+    FlyoutWidth="260"
+    FlyoutBackgroundColor="{AppThemeBinding Light={StaticResource SidebarBackground}, Dark={StaticResource SidebarBackgroundDark}}">
+
+    <!-- Flyout Header -->
+    <Shell.FlyoutHeader>
+        <Grid HeightRequest="120" Padding="20,30,20,20">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="{StaticResource GradientStart}" Offset="0.0" />
+                    <GradientStop Color="{StaticResource GradientEnd}" Offset="1.0" />
+                </LinearGradientBrush>
+            </Grid.Background>
+            <VerticalStackLayout VerticalOptions="End" Spacing="4">
+                <Label Text="Hardware Bridge" FontSize="20" FontAttributes="Bold"
+                       TextColor="White" FontFamily="OpenSansSemibold" />
+                <Label Text="Device Management Console" FontSize="12" TextColor="#CCFFFFFF" />
+            </VerticalStackLayout>
+        </Grid>
+    </Shell.FlyoutHeader>
+
+    <!-- Custom Flyout Item Template -->
+    <Shell.ItemTemplate>
+        <DataTemplate>
+            <Grid ColumnDefinitions="Auto,*" Padding="20,14" ColumnSpacing="16">
+                <Image Source="{Binding FlyoutIcon}" WidthRequest="22" HeightRequest="22" />
+                <Label Text="{Binding Title}" Grid.Column="1" FontSize="15"
+                       TextColor="{StaticResource SidebarText}" VerticalOptions="Center" />
+            </Grid>
+        </DataTemplate>
+    </Shell.ItemTemplate>
+
+    <FlyoutItem Title="Dashboard" FlyoutIcon="icon_dashboard.svg">
+        <ShellContent ContentTemplate="{DataTemplate views:GeneralPage}" Route="GeneralPage" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="WebSocket" FlyoutIcon="icon_websocket.svg">
+        <ShellContent ContentTemplate="{DataTemplate views:WebSocketPage}" Route="WebSocketPage" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Devices" FlyoutIcon="icon_devices.svg">
+        <ShellContent ContentTemplate="{DataTemplate views:DevicesPage}" Route="DevicesPage" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Queue" FlyoutIcon="icon_queue.svg">
+        <ShellContent ContentTemplate="{DataTemplate views:QueuePage}" Route="QueuePage" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Logging" FlyoutIcon="icon_logging.svg">
+        <ShellContent ContentTemplate="{DataTemplate views:LoggingPage}" Route="LoggingPage" />
+    </FlyoutItem>
+
+    <!-- Flyout Footer -->
+    <Shell.FlyoutFooter>
+        <Grid Padding="20,10" HeightRequest="50">
+            <Label Text="v1.0.0" FontSize="11" TextColor="{StaticResource TextMuted}"
+                   VerticalOptions="Center" />
+        </Grid>
+    </Shell.FlyoutFooter>
+
+</Shell>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:BridgeUI.ViewModels"
+             x:Class="BridgeUI.Views.WebSocketPage"
+             x:DataType="vm:WebSocketViewModel"
+             Title="WebSocket"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="0">
+
+            <!-- Page Header -->
+            <Grid HeightRequest="100" Padding="30,0">
+                <Grid.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0.5">
+                        <GradientStop Color="{AppThemeBinding Light={StaticResource GradientStart}, Dark={StaticResource GradientStartDark}}" Offset="0.0" />
+                        <GradientStop Color="{AppThemeBinding Light={StaticResource GradientEnd}, Dark={StaticResource GradientEndDark}}" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Grid.Background>
+                <VerticalStackLayout VerticalOptions="Center">
+                    <Label Text="WebSocket Configuration" FontSize="22" FontFamily="OpenSansSemibold" TextColor="White" />
+                    <Label Text="Manage server settings and security" FontSize="13" TextColor="#CCFFFFFF" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <VerticalStackLayout Padding="24,24" Spacing="20">
+
+                <!-- Server Configuration Card -->
+                <Border Style="{StaticResource DashboardCard}">
+                    <VerticalStackLayout Spacing="16">
+                        <Label Text="Server Configuration" Style="{StaticResource SectionHeader}" />
+                        <BoxView Style="{StaticResource Separator}" />
+                        <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="14">
+                            <Label Text="Port" VerticalOptions="Center" Style="{StaticResource BodyText}" Grid.Row="0" />
+                            <Border Style="{StaticResource ModernEntryBorder}" Grid.Row="0" Grid.Column="1" HorizontalOptions="Start">
+                                <Entry Text="{Binding Port}" Keyboard="Numeric" WidthRequest="100" />
+                            </Border>
+
+                            <Label Text="Max Connections" VerticalOptions="Center" Style="{StaticResource BodyText}" Grid.Row="1" />
+                            <Border Style="{StaticResource ModernEntryBorder}" Grid.Row="1" Grid.Column="1" HorizontalOptions="Start">
+                                <Entry Text="{Binding MaxConnections}" Keyboard="Numeric" WidthRequest="100" />
+                            </Border>
+
+                            <Label Text="Enable TLS" VerticalOptions="Center" Style="{StaticResource BodyText}" Grid.Row="2" />
+                            <Switch IsToggled="{Binding EnableTls}" Grid.Row="2" Grid.Column="1" HorizontalOptions="Start" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- TLS Configuration Card -->
+                <Border Style="{StaticResource DashboardCard}" IsVisible="{Binding EnableTls}">
+                    <VerticalStackLayout Spacing="16">
+                        <HorizontalStackLayout Spacing="8">
+                            <Border StrokeShape="RoundRectangle 10" StrokeThickness="0" Padding="8,3"
+                                    BackgroundColor="{AppThemeBinding Light=#FFF3E0, Dark=#40FF9800}">
+                                <Label Text="SECURITY" FontSize="10" FontFamily="OpenSansSemibold"
+                                       TextColor="{AppThemeBinding Light={StaticResource Warning}, Dark={StaticResource WarningDark}}" />
+                            </Border>
+                            <Label Text="TLS Configuration" Style="{StaticResource SectionHeader}" />
+                        </HorizontalStackLayout>
+                        <BoxView Style="{StaticResource Separator}" />
+                        <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto" RowSpacing="14">
+                            <Label Text="Certificate Path" VerticalOptions="Center" Style="{StaticResource BodyText}" Grid.Row="0" />
+                            <Border Style="{StaticResource ModernEntryBorder}" Grid.Row="0" Grid.Column="1">
+                                <Entry Text="{Binding CertificatePath}" />
+                            </Border>
+
+                            <Label Text="Certificate Password" VerticalOptions="Center" Style="{StaticResource BodyText}" Grid.Row="1" />
+                            <Border Style="{StaticResource ModernEntryBorder}" Grid.Row="1" Grid.Column="1">
+                                <Entry Text="{Binding CertificatePassword}" IsPassword="True" />
+                            </Border>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Allowed Origins Card -->
+                <Border Style="{StaticResource DashboardCard}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Allowed Origins" Style="{StaticResource SectionHeader}" />
+                        <BoxView Style="{StaticResource Separator}" />
+                        <Label Text="Enter origins separated by commas (e.g., http://localhost:3000, https://myapp.com)"
+                               Style="{StaticResource Caption}" />
+                        <Border Style="{StaticResource ModernEntryBorder}" Padding="12">
+                            <Editor Text="{Binding AllowedOrigins}" HeightRequest="80" />
+                        </Border>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Action Buttons -->
+                <HorizontalStackLayout Spacing="12">
+                    <Button Text="Load Settings" Style="{StaticResource SecondaryButton}" Command="{Binding LoadSettingsCommand}" />
+                    <Button Text="Save Settings" Style="{StaticResource PrimaryButton}" Command="{Binding SaveSettingsCommand}" />
+                </HorizontalStackLayout>
+
+                <Label Text="{Binding StatusText}" Style="{StaticResource Caption}" />
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

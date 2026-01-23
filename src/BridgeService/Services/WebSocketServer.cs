@@ -35,7 +35,9 @@ namespace HardwareBridge.Services
         private readonly IOptionsMonitor<ServiceConfiguration> _config;
         private readonly IServiceProvider _serviceProvider;
         private readonly IJsonRpcHandler _jsonRpcHandler;
+#if WINDOWS
         private readonly ICertificateManager _certificateManager;
+#endif
         
         private HttpListener _httpListener;
         private readonly ConcurrentDictionary<string, WebSocketConnection> _connections;
@@ -48,14 +50,19 @@ namespace HardwareBridge.Services
             ILogger<WebSocketServer> logger,
             IOptionsMonitor<ServiceConfiguration> config,
             IServiceProvider serviceProvider,
-            IJsonRpcHandler jsonRpcHandler,
-            ICertificateManager certificateManager)
+            IJsonRpcHandler jsonRpcHandler
+#if WINDOWS
+            , ICertificateManager certificateManager
+#endif
+            )
         {
             _logger = logger;
             _config = config;
             _serviceProvider = serviceProvider;
             _jsonRpcHandler = jsonRpcHandler;
+#if WINDOWS
             _certificateManager = certificateManager;
+#endif
             _connections = new ConcurrentDictionary<string, WebSocketConnection>();
             _connectionSemaphore = new SemaphoreSlim(config.CurrentValue.WebSocket.MaxConnections);
         }
@@ -68,11 +75,10 @@ namespace HardwareBridge.Services
                 return;
             }
 
+            var config = _config.CurrentValue.WebSocket;
             try
             {
                 _logger.LogInformation("Starting WebSocket server...");
-                
-                var config = _config.CurrentValue.WebSocket;
                 _cancellationTokenSource = new CancellationTokenSource();
                 
                 // Initialize HTTP listener
@@ -80,14 +86,18 @@ namespace HardwareBridge.Services
                 
                 if (config.UseTls)
                 {
+#if WINDOWS
                     // Ensure certificate is available
                     var certificate = await _certificateManager.GetCertificateAsync();
                     if (certificate == null)
                     {
                         throw new InvalidOperationException("TLS is enabled but no certificate is available");
                     }
-                    
                     _httpListener.Prefixes.Add($"https://+:{config.Port}/");
+#else
+                    _logger.LogWarning("TLS with managed certificates is only supported on Windows. Using HTTP.");
+                    _httpListener.Prefixes.Add($"http://+:{config.Port}/");
+#endif
                 }
                 else
                 {
@@ -103,6 +113,12 @@ namespace HardwareBridge.Services
                 _listenerTask = Task.Run(() => ListenAsync(_cancellationTokenSource.Token));
                 
                 _logger.LogInformation("WebSocket server started successfully");
+            }
+            catch (HttpListenerException ex) when (ex.ErrorCode == 48 || ex.ErrorCode == 98 || ex.ErrorCode == 10048)
+            {
+                // 48 = macOS EADDRINUSE, 98 = Linux EADDRINUSE, 10048 = Windows WSAEADDRINUSE
+                _logger.LogError("Port {Port} is already in use by another application. Please stop the other application or change the port in settings.", config.Port);
+                throw new InvalidOperationException($"Port {config.Port} is already in use. Please close the application using this port or configure a different port.", ex);
             }
             catch (Exception ex)
             {
@@ -262,13 +278,14 @@ namespace HardwareBridge.Services
         private bool IsOriginAllowed(HttpListenerRequest request, string[] allowedOrigins)
         {
             var origin = request.Headers["Origin"];
-            
+
+            // Allow connections without Origin header (native apps, desktop clients)
             if (string.IsNullOrEmpty(origin))
-                return false;
-            
+                return true;
+
             if (allowedOrigins.Contains("*"))
                 return true;
-            
+
             return allowedOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase);
         }
     }

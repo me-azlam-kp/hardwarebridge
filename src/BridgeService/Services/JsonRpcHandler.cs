@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using HardwareBridge.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,7 +52,7 @@ namespace HardwareBridge.Services
                     return CreateErrorResponse(request["id"], -32600, "Invalid Request");
                 }
 
-                var method = request["method"]?.Value<string>();
+                var method = request["method"]?.ToString();
                 var id = request["id"];
                 var parameters = request["params"];
 
@@ -118,6 +120,26 @@ namespace HardwareBridge.Services
             _methods["usb.receiveReport"] = ReceiveUsbReportAsync;
             _methods["usb.getStatus"] = GetUsbDeviceStatusAsync;
 
+            // Network methods
+            _methods["network.connect"] = ConnectNetworkDeviceAsync;
+            _methods["network.disconnect"] = DisconnectNetworkDeviceAsync;
+            _methods["network.ping"] = PingNetworkDeviceAsync;
+            _methods["network.getStatus"] = GetNetworkDeviceStatusAsync;
+            _methods["network.discover"] = DiscoverNetworkDevicesAsync;
+            _methods["network.send"] = SendNetworkDataAsync;
+
+            // Biometric methods
+            _methods["biometric.enroll"] = EnrollBiometricAsync;
+            _methods["biometric.authenticate"] = AuthenticateBiometricAsync;
+            _methods["biometric.identify"] = IdentifyBiometricAsync;
+            _methods["biometric.getStatus"] = GetBiometricStatusAsync;
+            _methods["biometric.getUsers"] = GetBiometricUsersAsync;
+            _methods["biometric.deleteUser"] = DeleteBiometricUserAsync;
+
+            // Settings methods
+            _methods["settings.get"] = GetSettingsAsync;
+            _methods["settings.save"] = SaveSettingsAsync;
+
             // System methods
             _methods["system.getInfo"] = GetSystemInfoAsync;
             _methods["system.getHealth"] = GetSystemHealthAsync;
@@ -131,7 +153,7 @@ namespace HardwareBridge.Services
 
         private bool IsValidJsonRpcRequest(JObject request)
         {
-            return request["jsonrpc"]?.Value<string>() == "2.0" &&
+            return request["jsonrpc"]?.ToString() == "2.0" &&
                    request["method"] != null;
         }
 
@@ -223,15 +245,19 @@ namespace HardwareBridge.Services
             var deviceId = parameters?["deviceId"]?.Value<string>();
             var data = parameters?["data"]?.Value<string>();
             var format = parameters?["format"]?.Value<string>() ?? "raw";
-            
+
             if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(data))
             {
                 throw new ArgumentException("Device ID and data are required");
             }
 
-            var printerManager = _serviceProvider.GetRequiredService<IPrinterManager>();
+            var printerManager = _serviceProvider.GetService<IPrinterManager>();
+            if (printerManager == null)
+            {
+                throw new InvalidOperationException("Printer support is not available on this platform");
+            }
+
             var result = await printerManager.PrintAsync(deviceId, data, format);
-            
             return JToken.FromObject(result);
         }
 
@@ -243,9 +269,13 @@ namespace HardwareBridge.Services
                 throw new ArgumentException("Device ID is required");
             }
 
-            var printerManager = _serviceProvider.GetRequiredService<IPrinterManager>();
+            var printerManager = _serviceProvider.GetService<IPrinterManager>();
+            if (printerManager == null)
+            {
+                throw new InvalidOperationException("Printer support is not available on this platform");
+            }
+
             var status = await printerManager.GetStatusAsync(deviceId);
-            
             return JToken.FromObject(status);
         }
 
@@ -257,9 +287,13 @@ namespace HardwareBridge.Services
                 throw new ArgumentException("Device ID is required");
             }
 
-            var printerManager = _serviceProvider.GetRequiredService<IPrinterManager>();
+            var printerManager = _serviceProvider.GetService<IPrinterManager>();
+            if (printerManager == null)
+            {
+                throw new InvalidOperationException("Printer support is not available on this platform");
+            }
+
             var capabilities = await printerManager.GetCapabilitiesAsync(deviceId);
-            
             return JToken.FromObject(capabilities);
         }
 
@@ -367,9 +401,13 @@ namespace HardwareBridge.Services
                 throw new ArgumentException("Device ID is required");
             }
 
-            var usbHidManager = _serviceProvider.GetRequiredService<IUsbHidManager>();
+            var usbHidManager = _serviceProvider.GetService<IUsbHidManager>();
+            if (usbHidManager == null)
+            {
+                throw new InvalidOperationException("USB HID support is not available on this platform");
+            }
+
             var result = await usbHidManager.OpenAsync(deviceId);
-            
             return JToken.FromObject(result);
         }
 
@@ -381,9 +419,13 @@ namespace HardwareBridge.Services
                 throw new ArgumentException("Device ID is required");
             }
 
-            var usbHidManager = _serviceProvider.GetRequiredService<IUsbHidManager>();
+            var usbHidManager = _serviceProvider.GetService<IUsbHidManager>();
+            if (usbHidManager == null)
+            {
+                throw new InvalidOperationException("USB HID support is not available on this platform");
+            }
+
             var result = await usbHidManager.CloseAsync(deviceId);
-            
             return JToken.FromObject(result);
         }
 
@@ -392,15 +434,19 @@ namespace HardwareBridge.Services
             var deviceId = parameters?["deviceId"]?.Value<string>();
             var reportId = parameters?["reportId"]?.Value<byte>() ?? 0;
             var data = parameters?["data"]?.Value<string>();
-            
+
             if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(data))
             {
                 throw new ArgumentException("Device ID and data are required");
             }
 
-            var usbHidManager = _serviceProvider.GetRequiredService<IUsbHidManager>();
+            var usbHidManager = _serviceProvider.GetService<IUsbHidManager>();
+            if (usbHidManager == null)
+            {
+                throw new InvalidOperationException("USB HID support is not available on this platform");
+            }
+
             var result = await usbHidManager.SendReportAsync(deviceId, reportId, data);
-            
             return JToken.FromObject(result);
         }
 
@@ -409,15 +455,19 @@ namespace HardwareBridge.Services
             var deviceId = parameters?["deviceId"]?.Value<string>();
             var reportId = parameters?["reportId"]?.Value<byte>() ?? 0;
             var timeout = parameters?["timeout"]?.Value<int>() ?? 5000;
-            
+
             if (string.IsNullOrEmpty(deviceId))
             {
                 throw new ArgumentException("Device ID is required");
             }
 
-            var usbHidManager = _serviceProvider.GetRequiredService<IUsbHidManager>();
+            var usbHidManager = _serviceProvider.GetService<IUsbHidManager>();
+            if (usbHidManager == null)
+            {
+                throw new InvalidOperationException("USB HID support is not available on this platform");
+            }
+
             var result = await usbHidManager.ReceiveReportAsync(deviceId, reportId, timeout);
-            
             return JToken.FromObject(result);
         }
 
@@ -429,10 +479,44 @@ namespace HardwareBridge.Services
                 throw new ArgumentException("Device ID is required");
             }
 
-            var usbHidManager = _serviceProvider.GetRequiredService<IUsbHidManager>();
+            var usbHidManager = _serviceProvider.GetService<IUsbHidManager>();
+            if (usbHidManager == null)
+            {
+                throw new InvalidOperationException("USB HID support is not available on this platform");
+            }
+
             var status = await usbHidManager.GetStatusAsync(deviceId);
-            
             return JToken.FromObject(status);
+        }
+
+        #endregion
+
+        #region Settings Methods
+
+        private async Task<JToken> GetSettingsAsync(JObject parameters, string connectionId)
+        {
+            var settingsManager = _serviceProvider.GetRequiredService<ISettingsManager>();
+            var settings = await settingsManager.LoadSettingsAsync();
+            return JToken.FromObject(settings);
+        }
+
+        private async Task<JToken> SaveSettingsAsync(JObject parameters, string connectionId)
+        {
+            var settingsManager = _serviceProvider.GetRequiredService<ISettingsManager>();
+            var settings = parameters?.ToObject<ServiceConfiguration>();
+
+            if (settings == null)
+            {
+                throw new ArgumentException("Settings object is required");
+            }
+
+            await settingsManager.SaveSettingsAsync(settings);
+
+            // Restart WebSocket server to apply changes
+            var webSocketServer = _serviceProvider.GetRequiredService<IWebSocketServer>();
+            await webSocketServer.RestartAsync();
+
+            return JToken.FromObject(new { success = true, message = "Settings saved and service restarted" });
         }
 
         #endregion
@@ -460,8 +544,222 @@ namespace HardwareBridge.Services
 
         private async Task<JToken> RestartSystemAsync(JObject parameters, string connectionId)
         {
-            // This would require admin privileges and careful implementation
-            throw new NotImplementedException("System restart not implemented");
+            _logger.LogWarning("System restart requested by connection {ConnectionId}", connectionId);
+
+            // Schedule a restart by stopping and restarting the hosted service
+            // The process manager (PM2, systemd, Windows Service) will handle the actual restart
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(1000);
+                Environment.Exit(0);
+            });
+
+            return JToken.FromObject(new
+            {
+                success = true,
+                message = "Service restart initiated"
+            });
+        }
+
+        #endregion
+
+        #region Network Methods
+
+        private async Task<JToken> ConnectNetworkDeviceAsync(JObject parameters, string connectionId)
+        {
+            var deviceId = parameters?["deviceId"]?.Value<string>();
+            var host = parameters?["host"]?.Value<string>();
+            var port = parameters?["port"]?.Value<int>() ?? 9100;
+            var protocol = parameters?["protocol"]?.Value<string>() ?? "tcp";
+
+            if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(host))
+            {
+                throw new ArgumentException("Device ID and host are required");
+            }
+
+            var networkManager = _serviceProvider.GetRequiredService<INetworkDeviceManager>();
+            var result = await networkManager.ConnectAsync(deviceId, host, port, protocol);
+
+            return JToken.FromObject(result);
+        }
+
+        private async Task<JToken> DisconnectNetworkDeviceAsync(JObject parameters, string connectionId)
+        {
+            var deviceId = parameters?["deviceId"]?.Value<string>();
+            if (string.IsNullOrEmpty(deviceId))
+            {
+                throw new ArgumentException("Device ID is required");
+            }
+
+            var networkManager = _serviceProvider.GetRequiredService<INetworkDeviceManager>();
+            var result = await networkManager.DisconnectAsync(deviceId);
+
+            return JToken.FromObject(result);
+        }
+
+        private async Task<JToken> PingNetworkDeviceAsync(JObject parameters, string connectionId)
+        {
+            var deviceId = parameters?["deviceId"]?.Value<string>();
+            var host = parameters?["host"]?.Value<string>();
+            var port = parameters?["port"]?.Value<int>() ?? 9100;
+
+            if (string.IsNullOrEmpty(host))
+            {
+                throw new ArgumentException("Host is required");
+            }
+
+            var networkManager = _serviceProvider.GetRequiredService<INetworkDeviceManager>();
+            var result = await networkManager.PingAsync(deviceId ?? "unknown", host, port);
+
+            return JToken.FromObject(result);
+        }
+
+        private async Task<JToken> GetNetworkDeviceStatusAsync(JObject parameters, string connectionId)
+        {
+            var deviceId = parameters?["deviceId"]?.Value<string>();
+            if (string.IsNullOrEmpty(deviceId))
+            {
+                throw new ArgumentException("Device ID is required");
+            }
+
+            var networkManager = _serviceProvider.GetRequiredService<INetworkDeviceManager>();
+            var status = await networkManager.GetStatusAsync(deviceId);
+
+            return JToken.FromObject(status);
+        }
+
+        private async Task<JToken> DiscoverNetworkDevicesAsync(JObject parameters, string connectionId)
+        {
+            var subnet = parameters?["subnet"]?.Value<string>();
+            var portsToken = parameters?["ports"];
+            var timeout = parameters?["timeout"]?.Value<int>() ?? 3000;
+            var maxConcurrent = parameters?["maxConcurrent"]?.Value<int>() ?? 50;
+
+            int[] ports = null;
+            if (portsToken is JArray portsArray)
+            {
+                ports = portsArray.Select(p => p.Value<int>()).ToArray();
+            }
+
+            var networkManager = _serviceProvider.GetRequiredService<INetworkDeviceManager>();
+            var devices = await networkManager.DiscoverAsync(subnet, ports, timeout, maxConcurrent);
+
+            return JToken.FromObject(new { devices, count = devices.Count });
+        }
+
+        private async Task<JToken> SendNetworkDataAsync(JObject parameters, string connectionId)
+        {
+            var deviceId = parameters?["deviceId"]?.Value<string>();
+            var data = parameters?["data"]?.Value<string>();
+
+            if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(data))
+            {
+                throw new ArgumentException("Device ID and data are required");
+            }
+
+            var networkManager = _serviceProvider.GetRequiredService<INetworkDeviceManager>();
+            var result = await networkManager.SendDataAsync(deviceId, data);
+
+            return JToken.FromObject(result);
+        }
+
+        #endregion
+
+        #region Biometric Methods
+
+        private async Task<JToken> EnrollBiometricAsync(JObject parameters, string connectionId)
+        {
+            var deviceId = parameters?["deviceId"]?.Value<string>();
+            var userId = parameters?["userId"]?.Value<string>();
+            var userName = parameters?["userName"]?.Value<string>();
+            var biometricData = parameters?["biometricData"]?.Value<string>();
+
+            if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(userId))
+            {
+                throw new ArgumentException("Device ID and user ID are required");
+            }
+
+            var biometricManager = _serviceProvider.GetRequiredService<IBiometricManager>();
+            var result = await biometricManager.EnrollAsync(deviceId, userId, userName, biometricData);
+
+            return JToken.FromObject(result);
+        }
+
+        private async Task<JToken> AuthenticateBiometricAsync(JObject parameters, string connectionId)
+        {
+            var deviceId = parameters?["deviceId"]?.Value<string>();
+            var userId = parameters?["userId"]?.Value<string>();
+            var biometricData = parameters?["biometricData"]?.Value<string>();
+
+            if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(userId))
+            {
+                throw new ArgumentException("Device ID and user ID are required");
+            }
+
+            var biometricManager = _serviceProvider.GetRequiredService<IBiometricManager>();
+            var result = await biometricManager.AuthenticateAsync(deviceId, userId, biometricData);
+
+            return JToken.FromObject(result);
+        }
+
+        private async Task<JToken> IdentifyBiometricAsync(JObject parameters, string connectionId)
+        {
+            var deviceId = parameters?["deviceId"]?.Value<string>();
+            var biometricData = parameters?["biometricData"]?.Value<string>();
+
+            if (string.IsNullOrEmpty(deviceId))
+            {
+                throw new ArgumentException("Device ID is required");
+            }
+
+            var biometricManager = _serviceProvider.GetRequiredService<IBiometricManager>();
+            var result = await biometricManager.IdentifyAsync(deviceId, biometricData);
+
+            return JToken.FromObject(result);
+        }
+
+        private async Task<JToken> GetBiometricStatusAsync(JObject parameters, string connectionId)
+        {
+            var deviceId = parameters?["deviceId"]?.Value<string>();
+            if (string.IsNullOrEmpty(deviceId))
+            {
+                throw new ArgumentException("Device ID is required");
+            }
+
+            var biometricManager = _serviceProvider.GetRequiredService<IBiometricManager>();
+            var status = await biometricManager.GetStatusAsync(deviceId);
+
+            return JToken.FromObject(status);
+        }
+
+        private async Task<JToken> GetBiometricUsersAsync(JObject parameters, string connectionId)
+        {
+            var deviceId = parameters?["deviceId"]?.Value<string>();
+            if (string.IsNullOrEmpty(deviceId))
+            {
+                throw new ArgumentException("Device ID is required");
+            }
+
+            var biometricManager = _serviceProvider.GetRequiredService<IBiometricManager>();
+            var users = await biometricManager.GetUsersAsync(deviceId);
+
+            return JToken.FromObject(new { users, count = users.Count });
+        }
+
+        private async Task<JToken> DeleteBiometricUserAsync(JObject parameters, string connectionId)
+        {
+            var deviceId = parameters?["deviceId"]?.Value<string>();
+            var userId = parameters?["userId"]?.Value<string>();
+
+            if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(userId))
+            {
+                throw new ArgumentException("Device ID and user ID are required");
+            }
+
+            var biometricManager = _serviceProvider.GetRequiredService<IBiometricManager>();
+            var result = await biometricManager.DeleteUserAsync(deviceId, userId);
+
+            return JToken.FromObject(result);
         }
 
         #endregion

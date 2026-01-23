@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:BridgeUI.ViewModels"
+             xmlns:models="clr-namespace:BridgeUI.Models"
+             x:Class="BridgeUI.Views.DevicesPage"
+             x:DataType="vm:DevicesViewModel"
+             Title="Devices"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Page Header -->
+        <Grid HeightRequest="100" Padding="30,0" Grid.Row="0">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0.5">
+                    <GradientStop Color="{AppThemeBinding Light={StaticResource GradientStart}, Dark={StaticResource GradientStartDark}}" Offset="0.0" />
+                    <GradientStop Color="{AppThemeBinding Light={StaticResource GradientEnd}, Dark={StaticResource GradientEndDark}}" Offset="1.0" />
+                </LinearGradientBrush>
+            </Grid.Background>
+            <Grid ColumnDefinitions="*,Auto">
+                <VerticalStackLayout VerticalOptions="Center">
+                    <Label Text="Devices" FontSize="22" FontFamily="OpenSansSemibold" TextColor="White" />
+                    <Label Text="{Binding Devices.Count, StringFormat='{0} device(s) discovered'}" FontSize="13" TextColor="#CCFFFFFF" />
+                </VerticalStackLayout>
+                <Button Text="Refresh" Style="{StaticResource SecondaryButton}"
+                        BorderColor="White" TextColor="White"
+                        Grid.Column="1" VerticalOptions="Center"
+                        Command="{Binding RefreshDevicesCommand}" />
+            </Grid>
+        </Grid>
+
+        <!-- Device List -->
+        <CollectionView Grid.Row="1" ItemsSource="{Binding Devices}" SelectionMode="Single"
+                        SelectedItem="{Binding SelectedDevice}" Margin="24,16,24,0">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:DeviceInfo">
+                    <Border Style="{StaticResource DashboardCard}" Margin="0,0,0,12">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+                            <!-- Status indicator dot -->
+                            <Border WidthRequest="12" HeightRequest="12" StrokeShape="RoundRectangle 6"
+                                    StrokeThickness="0" VerticalOptions="Center"
+                                    BackgroundColor="{Binding IsConnected, Converter={StaticResource BoolToColorConverter}}" />
+
+                            <!-- Device info -->
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <Label Text="{Binding Name}" Style="{StaticResource CardTitle}" />
+                                <HorizontalStackLayout Spacing="8">
+                                    <Border StrokeShape="RoundRectangle 8" StrokeThickness="0" Padding="8,2"
+                                            BackgroundColor="{AppThemeBinding Light={StaticResource PrimarySubtle}, Dark=#20ac99ea}">
+                                        <Label Text="{Binding Type}" FontSize="11"
+                                               TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                    </Border>
+                                    <Label Text="{Binding Id}" Style="{StaticResource Caption}" VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                                <Label Text="{Binding Status}" Style="{StaticResource Caption}"
+                                       TextColor="{Binding IsConnected, Converter={StaticResource BoolToColorConverter}}" />
+                            </VerticalStackLayout>
+
+                            <!-- Action buttons -->
+                            <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" Spacing="6">
+                                <Button Text="Connect" Style="{StaticResource PrimaryButton}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DevicesViewModel}}, Path=ConnectDeviceCommand}"
+                                        CommandParameter="{Binding Id}"
+                                        IsVisible="{Binding IsConnected, Converter={StaticResource InverseBoolConverter}}" />
+                                <Button Text="Disconnect" Style="{StaticResource DangerButton}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DevicesViewModel}}, Path=DisconnectDeviceCommand}"
+                                        CommandParameter="{Binding Id}"
+                                        IsVisible="{Binding IsConnected}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+            <CollectionView.EmptyView>
+                <Border Style="{StaticResource ElevatedCard}" HorizontalOptions="Center" VerticalOptions="Center" Margin="0,60">
+                    <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                        <Label Text="No Devices Found" Style="{StaticResource SectionHeader}" HorizontalOptions="Center" />
+                        <Label Text="Click Refresh to scan for available devices." Style="{StaticResource BodyText}" HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Border>
+            </CollectionView.EmptyView>
+        </CollectionView>
+
+        <!-- Status -->
+        <Label Text="{Binding StatusText}" Grid.Row="2" Style="{StaticResource Caption}" Margin="28,8,28,16" />
+    </Grid>
+
+</ContentPage>
