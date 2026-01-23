@@ -1,6 +1,6 @@
 {
   "name": "@hardwarebridge/client",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "TypeScript client library for Hardware Bridge WebSocket service",
   "type": "module",
   "main": "dist/index.js",
