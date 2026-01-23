@@ -213,14 +213,28 @@ class ModernWebToPrintApp {
     try {
       this.log('🔍 Discovering devices...', 'info');
       
+      // Discover local devices
       const result = await this.client.enumerateDevices();
-      this.devices = result.devices || [];
+      let devices = result.devices || [];
       
-      this.log(`✅ Found ${this.devices.length} devices`, 'success');
+      // Discover network devices
+      try {
+        this.log('🔍 Discovering network devices...', 'info');
+        const networkResult = await this.client.discoverNetworkDevices();
+        if (networkResult.success && networkResult.devices) {
+          devices = [...devices, ...networkResult.devices];
+          this.log(`✅ Found ${networkResult.devices.length} network devices`, 'success');
+        }
+      } catch (networkError) {
+        this.log(`⚠️ Network device discovery failed: ${networkError.message}`, 'warning');
+      }
+      
+      this.devices = devices;
+      this.log(`✅ Found ${this.devices.length} total devices`, 'success');
       this.updateDeviceList(this.devices);
       
       // Auto-select first printer
-      const printer = this.devices.find(d => d.type === 'printer');
+      const printer = this.devices.find(d => d.type === 'printer' || d.type === 'network');
       if (printer) {
         this.selectPrinter(printer.id);
       }
@@ -252,14 +266,71 @@ class ModernWebToPrintApp {
    * Select a printer device
    */
   selectPrinter(deviceId) {
-    const printer = this.devices.find(d => d.id === deviceId && d.type === 'printer');
+    const printer = this.devices.find(d => d.id === deviceId && (d.type === 'printer' || d.type === 'network'));
     
     if (printer) {
       this.selectedPrinter = printer;
       this.log(`✅ Selected printer: ${printer.name}`, 'success');
       this.updatePrinterSelection(printer);
+      
+      // Handle network device connection
+      if (printer.type === 'network' && !printer.isConnected) {
+        this.connectNetworkDevice(printer);
+      }
     } else {
       this.log('❌ Invalid printer selection', 'error');
+    }
+  }
+
+  /**
+   * Connect to network device
+   */
+  async connectNetworkDevice(device) {
+    try {
+      this.log(`🔌 Connecting to network device: ${device.name}...`, 'info');
+      
+      const config = {
+        host: device.host || 'localhost',
+        port: device.port || 9100,
+        protocol: device.protocol || 'tcp',
+        timeout: 5000
+      };
+      
+      const result = await this.client.connectNetworkDevice(device.id, config);
+      
+      if (result.success) {
+        this.log(`✅ Connected to network device: ${device.name}`, 'success');
+        device.isConnected = true;
+        this.updatePrinterSelection(device);
+      } else {
+        this.log(`❌ Failed to connect to network device: ${result.error || 'Unknown error'}`, 'error');
+      }
+    } catch (error) {
+      this.log(`❌ Network device connection failed: ${error.message}`, 'error');
+    }
+  }
+
+  /**
+   * Ping network device
+   */
+  async pingNetworkDevice(deviceId) {
+    try {
+      const device = this.devices.find(d => d.id === deviceId && d.type === 'network');
+      if (!device) return;
+      
+      this.log(`📡 Pinging network device: ${device.name}...`, 'info');
+      const result = await this.client.pingNetworkDevice(deviceId);
+      
+      if (result.success) {
+        this.log(`✅ Device is online (${result.responseTime}ms)`, 'success');
+        device.isOnline = result.isOnline;
+        device.lastPingTime = result.timestamp;
+        this.updateDeviceList(this.devices);
+      } else {
+        this.log(`❌ Device ping failed: ${result.error}`, 'error');
+      }
+    } catch (error) {
+      this.log(`❌ Network device ping failed: ${error.message}`, 'error');
     }
   }
 
@@ -604,7 +675,23 @@ Test Patterns:
     devices.forEach(device => {
       const option = document.createElement('option');
       option.value = device.id;
-      option.textContent = `${device.name} (${device.type}) - ${device.status}`;
+      
+      // Enhanced device display with network information
+      let deviceInfo = `${device.name} (${device.type}) - ${device.status}`;
+      
+      if (device.type === 'network' || device.type === 'biometric') {
+        if (device.host && device.port) {
+          deviceInfo += ` - ${device.host}:${device.port}`;
+        }
+        if (device.connectionType) {
+          deviceInfo += ` (${device.connectionType})`;
+        }
+        if (device.isOnline !== undefined) {
+          deviceInfo += device.isOnline ? ' 🟢' : ' 🔴';
+        }
+      }
+      
+      option.textContent = deviceInfo;
       deviceSelect.appendChild(option);
     });
     
@@ -619,12 +706,56 @@ Test Patterns:
   updatePrinterSelection(printer) {
     const printerInfo = document.getElementById('printerInfo');
     if (printer) {
-      printerInfo.innerHTML = `
+      let html = `
         <h6>${printer.name}</h6>
         <p class="mb-1">Type: ${printer.type}</p>
         <p class="mb-1">Status: ${printer.status}</p>
-        <p class="mb-0">Protocols: ${printer.supportedProtocols?.join(', ') || 'N/A'}</p>
       `;
+      
+      // Network device information
+      if (printer.type === 'network') {
+        html += `
+          <p class="mb-1">Host: ${printer.host || 'N/A'}:${printer.port || 'N/A'}</p>
+          <p class="mb-1">Protocol: ${printer.protocol || 'N/A'}</p>
+          <p class="mb-1">Connection: ${printer.connectionType || 'N/A'}</p>
+          <p class="mb-1">Online: ${printer.isOnline ? '🟢 Online' : '🔴 Offline'}</p>
+        `;
+        
+        if (printer.isConnected) {
+          html += `<p class="mb-1 text-success">✅ Connected</p>`;
+        } else {
+          html += `<p class="mb-1 text-warning">⚠️ Not Connected</p>`;
+        }
+        
+        // Add network device controls
+        html += `
+          <div class="mt-2">
+            <button class="btn btn-sm btn-primary me-2" onclick="app.connectNetworkDevice(app.selectedPrinter)">
+              <i class="bi bi-wifi"></i> Connect
+            </button>
+            <button class="btn btn-sm btn-info" onclick="app.pingNetworkDevice('${printer.id}')">
+              <i class="bi bi-arrow-repeat"></i> Ping
+            </button>
+          </div>
+        `;
+      }
+      
+      // Biometric device information
+      if (printer.type === 'biometric') {
+        html += `
+          <p class="mb-1">Biometric Type: ${printer.biometricType || 'N/A'}</p>
+          <p class="mb-1">Security Level: ${printer.securityLevel || 'N/A'}</p>
+          <p class="mb-1">Users: ${printer.currentUsers || 0}/${printer.maxUsers || 0}</p>
+          <p class="mb-1">Failed Attempts: ${printer.failedAttempts || 0}</p>
+        `;
+      }
+      
+      // Regular printer information
+      if (printer.type === 'printer') {
+        html += `<p class="mb-0">Protocols: ${printer.supportedProtocols?.join(', ') || 'N/A'}</p>`;
+      }
+      
+      printerInfo.innerHTML = html;
     } else {
       printerInfo.innerHTML = '<p class="text-muted">No printer selected</p>';
     }

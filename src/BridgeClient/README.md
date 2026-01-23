@@ -1,4 +1,4 @@
-# 🔌 Hardware Bridge Client
+# Hardware Bridge Client
 
 [![npm version](https://badge.fury.io/js/%40hardwarebridge%2Fclient.svg)](https://badge.fury.io/js/%40hardwarebridge%2Fclient)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -6,7 +6,7 @@
 
 A professional TypeScript client library for connecting to Hardware Bridge WebSocket services. Control hardware devices including printers, serial ports, and USB HID devices with ease.
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 npm install @hardwarebridge/client
@@ -24,7 +24,7 @@ await client.connect();
 const devices = await client.enumerateDevices();
 ```
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Features](#features)
 - [Installation](#installation)
@@ -39,19 +39,19 @@ const devices = await client.enumerateDevices();
 - [License](#license)
 - [Support](#support)
 
-## ✨ Features
+## Features
 
-- 🔌 **WebSocket Communication** - Real-time connection to Hardware Bridge server
-- 🖨️ **Printer Support** - ESC/POS, ZPL, EPL protocols
-- 🔌 **Serial Port Control** - Full serial communication capabilities
-- 📱 **USB HID Devices** - Human Interface Device communication
-- 📦 **Queue Management** - Built-in job queuing system
-- 🔒 **TypeScript Support** - Full type definitions and IntelliSense
-- 🔄 **Auto-reconnection** - Robust connection handling
-- 📊 **Device Discovery** - Automatic device enumeration
-- ⚡ **Multi-format Support** - CommonJS, ES Modules, UMD builds
+- **WebSocket Communication** - Real-time connection to Hardware Bridge server
+- **Printer Support** - ESC/POS, ZPL, EPL protocols
+- **Serial Port Control** - Full serial communication capabilities
+- **USB HID Devices** - Human Interface Device communication
+- **Queue Management** - Built-in job queuing system
+- **TypeScript Support** - Full type definitions and IntelliSense
+- **Auto-reconnection** - Robust connection handling
+- **Device Discovery** - Automatic device enumeration
+- **Multi-format Support** - CommonJS, ES Modules, UMD builds
 
-## 📦 Installation
+## Installation
 
 ```bash
 # npm
@@ -64,7 +64,7 @@ yarn add @hardwarebridge/client
 pnpm add @hardwarebridge/client
 ```
 
-## 🔧 Basic Usage
+## Basic Usage
 
 ### Connecting to the Server
 
@@ -126,7 +126,7 @@ const jobs = await client.getQueueJobs();
 console.log(`Found ${jobs.length} jobs in queue`);
 ```
 
-## 📚 API Reference
+## API Reference
 
 ### HardwareBridgeClient
 
@@ -201,7 +201,7 @@ const jobs = await client.getQueueJobs({
 await client.cancelQueueJob(jobId);
 ```
 
-## 🖨️ Hardware Support
+## Hardware Support
 
 ### Supported Protocols
 
@@ -217,7 +217,7 @@ await client.cancelQueueJob(jobId);
 - **USB HID** - Human Interface Devices
 - **Custom Devices** - Extensible device support
 
-## 📖 Examples
+## Examples
 
 ### Complete Printer Example
 
@@ -231,11 +231,11 @@ async function printReceipt() {
 
   try {
     await client.connect();
-    
+
     // Find printer
     const devices = await client.enumerateDevices();
     const printer = devices.find(d => d.type === 'printer');
-    
+
     if (!printer) {
       throw new Error('No printer found');
     }
@@ -258,7 +258,7 @@ Thank you!
 
     const result = await client.print(printer.id, receipt, 'escpos');
     console.log('Receipt printed:', result.jobId);
-    
+
   } catch (error) {
     console.error('Print error:', error);
   } finally {
@@ -278,11 +278,11 @@ async function serialCommunication() {
   });
 
   await client.connect();
-  
+
   // Find serial device
   const devices = await client.enumerateDevices();
   const serialDevice = devices.find(d => d.type === 'serial');
-  
+
   if (serialDevice) {
     // Open serial port
     await client.openSerialPort(serialDevice.id, {
@@ -291,15 +291,15 @@ async function serialCommunication() {
       parity: 'none',
       stopBits: 1
     });
-    
+
     // Send data
     await client.sendSerialData(serialDevice.id, 'Hello Serial!');
-    
+
     // Receive data
     const data = await client.receiveSerialData(serialDevice.id);
     console.log('Received:', data);
   }
-  
+
   await client.disconnect();
 }
 ```
@@ -313,7 +313,7 @@ async function queueManagement() {
   });
 
   await client.connect();
-  
+
   // Get queue status
   const status = await client.getQueueStatus();
   console.log('Queue status:', {
@@ -322,18 +322,18 @@ async function queueManagement() {
     processing: status.processingJobs,
     completed: status.completedJobs
   });
-  
+
   // Get recent jobs
   const jobs = await client.getQueueJobs({ limit: 10 });
   jobs.forEach(job => {
     console.log(`${job.id}: ${job.operation} - ${job.status}`);
   });
-  
+
   await client.disconnect();
 }
 ```
 
-## 🎨 Print Format Examples
+## Print Format Examples
 
 ### ESC/POS (Receipt Format)
 ```typescript
@@ -384,7 +384,7 @@ P1
 await client.print(printerId, eplLabel, 'epl');
 ```
 
-## 🔒 Error Handling
+## Error Handling
 
 ```typescript
 import { HardwareBridgeClient, HardwareBridgeError } from '@hardwarebridge/client';
@@ -409,10 +409,10 @@ client.onDeviceEvent((event) => {
 // Handle errors gracefully
 try {
   await client.connect();
-  
+
   // Your code here
   const devices = await client.enumerateDevices();
-  
+
 } catch (error) {
   if (error instanceof HardwareBridgeError) {
     console.error('Hardware Bridge Error:', error.message);
@@ -425,7 +425,7 @@ try {
 }
 ```
 
-## 🌐 Browser Usage
+## Browser Usage
 
 ```html
 <!DOCTYPE html>
@@ -442,29 +442,29 @@ try {
 
   <script type="module">
     import { HardwareBridgeClient } from 'https://unpkg.com/@hardwarebridge/client@latest/dist/index.esm.js';
-    
+
     const client = new HardwareBridgeClient({
       url: 'ws://localhost:8443'
     });
-    
+
     document.getElementById('connect').addEventListener('click', async () => {
       try {
         await client.connect();
         document.getElementById('status').textContent = 'Connected!';
-        
+
         const devices = await client.enumerateDevices();
-        document.getElementById('devices').innerHTML = 
+        document.getElementById('devices').innerHTML =
           devices.map(d => `<p>${d.name} (${d.type})</p>`).join('');
       } catch (error) {
         document.getElementById('status').textContent = 'Connection failed: ' + error.message;
       }
     });
-    
+
     document.getElementById('print').addEventListener('click', async () => {
       try {
         const devices = await client.enumerateDevices();
         const printer = devices.find(d => d.type === 'printer');
-        
+
         if (printer) {
           await client.print(printer.id, 'Hello from Browser!', 'raw');
           alert('Printed successfully!');
@@ -480,7 +480,7 @@ try {
 </html>
 ```
 
-## 🛠️ Configuration
+## Configuration
 
 ### Server Configuration
 
@@ -505,7 +505,7 @@ const client = new HardwareBridgeClient({
 });
 ```
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run the test applications
@@ -518,7 +518,7 @@ node simple-test-app.js
 node enhanced-test-app.js
 ```
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
@@ -528,13 +528,13 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch: `git push origin feature/amazing-feature`
 5. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-Copyright (c) 2024 Azlam
+Copyright (c) 2026 Azlam
 
-## 🆘 Support
+## Support
 
 For support and questions:
 - **Issues**: [Create an issue](https://github.com/me-azlam-kp/hardwarebridge/issues) in the repository

@@ -19,7 +19,7 @@ export class WebSocketClient {
   private reconnectTimer: any = null;
   private pingTimer: any = null;
   private messageId = 0;
-  private pendingRequests = new Map<string | number, { resolve: Function; reject: Function; timeout: any }>();
+  private pendingRequests = new Map<string | number, { resolve: (value: any) => void; reject: (reason?: any) => void; timeout: any }>();
 
   constructor(config: ConnectionConfig, options: ClientOptions = {}) {
     this.config = config;

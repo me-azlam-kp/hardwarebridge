@@ -9,7 +9,11 @@ import {
   SystemHealth,
   DeviceEvent,
   ConnectionConfig,
-  ClientOptions
+  ClientOptions,
+  NetworkDeviceConfig,
+  EnumerateResult,
+  DiscoverOptions,
+  DiscoverResult
 } from '../types';
 
 export class HardwareBridgeClient {
@@ -66,8 +70,12 @@ export class HardwareBridgeClient {
 
   // Device Discovery
   async enumerateDevices(): Promise<DeviceInfo[]> {
-    const result = await this.wsClient.sendRequest<{ devices: DeviceInfo[] }>('devices.enumerate');
+    const result = await this.wsClient.sendRequest<EnumerateResult>('devices.enumerate');
     return result.devices;
+  }
+
+  async enumerateDevicesWithInfo(options?: { forceRefresh?: boolean }): Promise<EnumerateResult> {
+    return this.wsClient.sendRequest<EnumerateResult>('devices.enumerate', options);
   }
 
   async getDevice(deviceId: string): Promise<DeviceInfo> {
@@ -302,5 +310,161 @@ export class HardwareBridgeClient {
 
   dispose(): void {
     this.wsClient.dispose();
+  }
+
+  // Network Device Operations
+  async connectNetworkDevice(deviceId: string, config: NetworkDeviceConfig): Promise<{
+    success: boolean;
+    deviceId: string;
+    status: string;
+    connectionId?: string;
+    timestamp: Date;
+    error?: string;
+  }> {
+    return this.wsClient.sendRequest('network.connect', { deviceId, config });
+  }
+
+  async disconnectNetworkDevice(deviceId: string): Promise<{
+    success: boolean;
+    deviceId: string;
+    status: string;
+    timestamp: Date;
+    error?: string;
+  }> {
+    return this.wsClient.sendRequest('network.disconnect', { deviceId });
+  }
+
+  async pingNetworkDevice(deviceId: string, host: string, port: number, timeout?: number): Promise<{
+    success: boolean;
+    deviceId: string;
+    responseTime: number;
+    isOnline: boolean;
+    timestamp: Date;
+    error?: string;
+  }> {
+    return this.wsClient.sendRequest('network.ping', { deviceId, host, port, timeout });
+  }
+
+  async getNetworkDeviceStatus(deviceId: string): Promise<{
+    success: boolean;
+    deviceId: string;
+    status: string;
+    isConnected: boolean;
+    isOnline: boolean;
+    lastPingTime?: Date;
+    host: string;
+    port: number;
+    protocol: string;
+    timestamp: Date;
+  }> {
+    return this.wsClient.sendRequest('network.getStatus', { deviceId });
+  }
+
+  async discoverNetworkDevices(options?: DiscoverOptions): Promise<DiscoverResult> {
+    return this.wsClient.sendRequest<DiscoverResult>('network.discover', options || {});
+  }
+
+  async sendNetworkData(deviceId: string, data: string, encoding: string = 'utf8'): Promise<{
+    success: boolean;
+    bytesWritten: number;
+    timestamp: Date;
+    error?: string;
+  }> {
+    return this.wsClient.sendRequest('network.send', { deviceId, data, encoding });
+  }
+
+  async printToNetworkPrinter(deviceId: string, host: string, port: number, data: string, format: PrintFormat = 'raw'): Promise<PrintResult> {
+    return this.wsClient.sendRequest<PrintResult>('printer.print', {
+      deviceId,
+      data,
+      format,
+      host,
+      port
+    });
+  }
+
+  // Biometric Device Operations
+  async enrollBiometric(deviceId: string, userId: string, userName: string, biometricData: string): Promise<{
+    success: boolean;
+    deviceId: string;
+    userId: string;
+    userName: string;
+    enrollmentTime: number;
+    status: string;
+    timestamp: Date;
+  }> {
+    return this.wsClient.sendRequest('biometric.enroll', { deviceId, userId, userName, biometricData });
+  }
+
+  async authenticateBiometric(deviceId: string, userId: string, biometricData: string, authenticationType: 'verify' | 'identify' = 'verify'): Promise<{
+    success: boolean;
+    deviceId: string;
+    userId: string;
+    authenticationType: string;
+    confidence: number;
+    authenticationTime: number;
+    timestamp: Date;
+  }> {
+    return this.wsClient.sendRequest('biometric.authenticate', { deviceId, userId, biometricData, authenticationType });
+  }
+
+  async verifyBiometric(deviceId: string, userId: string, biometricData: string): Promise<{
+    success: boolean;
+    deviceId: string;
+    userId: string;
+    authenticationType: string;
+    confidence: number;
+    authenticationTime: number;
+    timestamp: Date;
+  }> {
+    return this.authenticateBiometric(deviceId, userId, biometricData, 'verify');
+  }
+
+  async identifyBiometric(deviceId: string, biometricData: string): Promise<{
+    success: boolean;
+    deviceId: string;
+    userId?: string;
+    userName?: string;
+    confidence: number;
+    authenticationTime: number;
+    timestamp: Date;
+  }> {
+    return this.wsClient.sendRequest('biometric.identify', { deviceId, biometricData });
+  }
+
+  async getBiometricStatus(deviceId: string): Promise<{
+    success: boolean;
+    deviceId: string;
+    status: string;
+    isConnected: boolean;
+    isOnline: boolean;
+    biometricType: string;
+    currentUsers: number;
+    maxUsers: number;
+    securityLevel: string;
+    failedAttempts: number;
+    timestamp: Date;
+  }> {
+    return this.wsClient.sendRequest('biometric.getStatus', { deviceId });
+  }
+
+  async deleteBiometricUser(deviceId: string, userId: string): Promise<{
+    success: boolean;
+    deviceId: string;
+    userId: string;
+    timestamp: Date;
+  }> {
+    return this.wsClient.sendRequest('biometric.deleteUser', { deviceId, userId });
+  }
+
+  async getBiometricUsers(deviceId: string): Promise<{
+    success: boolean;
+    deviceId: string;
+    users: Array<{ userId: string; userName: string; enrolledAt?: Date }>;
+    totalUsers: number;
+    maxUsers: number;
+    timestamp: Date;
+  }> {
+    return this.wsClient.sendRequest('biometric.getUsers', { deviceId });
   }
 }

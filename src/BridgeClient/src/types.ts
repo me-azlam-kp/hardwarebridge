@@ -1,7 +1,7 @@
 export interface DeviceInfo {
   id: string;
   name: string;
-  type: 'printer' | 'serial' | 'usbhid';
+  type: 'printer' | 'serial' | 'usbhid' | 'network' | 'biometric';
   status: 'available' | 'connected' | 'error';
   manufacturer: string;
   model: string;
@@ -45,12 +45,105 @@ export interface UsbHidDevice extends DeviceInfo {
   isOpen: boolean;
 }
 
+export interface NetworkDevice extends DeviceInfo {
+  host: string;
+  port: number;
+  protocol: 'tcp' | 'udp' | 'http' | 'https';
+  connectionType: 'wifi' | 'ethernet' | 'bluetooth';
+  macAddress?: string;
+  ipAddress?: string;
+  isOnline: boolean;
+  lastPingTime?: Date;
+  networkInterface?: string;
+}
+
+export interface NetworkPrinterDevice extends NetworkDevice, PrinterDevice {
+  printProtocol: 'ipp' | 'lpd' | 'socket' | 'http';
+  supportsIPP: boolean;
+  supportsAirPrint: boolean;
+  supportsGoogleCloudPrint: boolean;
+  printerUri?: string;
+  queueName?: string;
+}
+
+export interface BiometricDevice extends NetworkDevice {
+  biometricType: 'fingerprint' | 'face' | 'iris' | 'voice' | 'palm';
+  supportedTemplates: string[];
+  maxUsers: number;
+  currentUsers: number;
+  authenticationMethods: string[];
+  securityLevel: 'low' | 'medium' | 'high' | 'maximum';
+  isEnrolled: boolean;
+  enrollmentStatus?: 'enrolling' | 'enrolled' | 'failed';
+  lastAuthentication?: Date;
+  failedAttempts: number;
+  lockoutEndTime?: Date;
+}
+
 export interface ConnectionConfig {
   url: string;
   protocols?: string[];
   reconnectInterval?: number;
   maxReconnectAttempts?: number;
   timeout?: number;
+}
+
+export interface NetworkDeviceConfig {
+  host: string;
+  port: number;
+  protocol: 'tcp' | 'udp' | 'http' | 'https';
+  timeout?: number;
+  retryAttempts?: number;
+  authentication?: {
+    type: 'basic' | 'bearer' | 'apikey';
+    username?: string;
+    password?: string;
+    token?: string;
+    apiKey?: string;
+  };
+  ssl?: {
+    enabled: boolean;
+    verifyCertificate?: boolean;
+    clientCertificate?: string;
+    clientKey?: string;
+  };
+}
+
+export interface BiometricConfig {
+  securityLevel: 'low' | 'medium' | 'high' | 'maximum';
+  timeout: number;
+  retryAttempts: number;
+  livenessDetection: boolean;
+  templateFormat: 'iso' | 'ansi' | 'custom';
+  maxUsers: number;
+  authenticationMethods: string[];
+}
+
+export interface BiometricEnrollmentRequest {
+  userId: string;
+  userName: string;
+  biometricData: string;
+  backupData?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface BiometricAuthenticationRequest {
+  userId?: string;
+  biometricData: string;
+  authenticationType: 'verify' | 'identify';
+  timeout?: number;
+}
+
+export interface BiometricResult {
+  success: boolean;
+  userId?: string;
+  userName?: string;
+  confidence: number;
+  matchScore?: number;
+  authenticationTime: number;
+  error?: string;
+  attemptsRemaining?: number;
+  lockoutTime?: number;
 }
 
 export interface JsonRpcRequest {
@@ -181,7 +274,36 @@ export interface ClientOptions {
   headers?: Record<string, string>;
 }
 
-export type DeviceType = 'printer' | 'serial' | 'usbhid';
+export type DeviceType = 'printer' | 'serial' | 'usbhid' | 'network' | 'biometric';
 export type PrintFormat = 'raw' | 'escpos' | 'zpl' | 'epl';
 export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error' | 'reconnecting';
+export type DeviceSource = 'real' | 'simulated';
+export type DeviceConnectionType = 'network' | 'usb' | 'serial' | 'local';
+
+export interface EnumerateResult {
+  devices: DeviceInfo[];
+  timestamp: Date;
+  source: DeviceSource;
+}
+
+export interface DiscoverOptions {
+  subnet?: string;
+  ports?: number[];
+  timeout?: number;
+  maxConcurrent?: number;
+}
+
+export interface DiscoveredDevice {
+  host: string;
+  port: number;
+  responseTime: number;
+  timestamp: Date;
+}
+
+export interface DiscoverResult {
+  success: boolean;
+  devices: DiscoveredDevice[];
+  count: number;
+  timestamp: Date;
+}

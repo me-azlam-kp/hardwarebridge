@@ -45,7 +45,7 @@ class CrossPlatformHardwareBridgeServer {
   async start(): Promise<void> {
     try {
       console.log('Starting Cross-Platform Hardware Bridge Server...');
-      
+
       // Ensure data directory exists
       const dataDir = path.dirname(this.config.databasePath);
       if (!fs.existsSync(dataDir)) {
@@ -55,6 +55,16 @@ class CrossPlatformHardwareBridgeServer {
       // Initialize database
       await this.dbManager.initialize();
       console.log('Database initialized');
+
+      // Register error/close handlers before starting
+      this.wsServer.onError((error) => {
+        console.error('[Server] WebSocket server error after startup:', error);
+      });
+
+      this.wsServer.onClose(() => {
+        console.error('[Server] WebSocket server closed unexpectedly. Exiting.');
+        process.exit(1);
+      });
 
       // Start WebSocket server
       await this.wsServer.start();
@@ -130,29 +140,50 @@ class CrossPlatformHardwareBridgeServer {
 
 // Main execution
 async function main() {
+  console.log('Entering main function...');
+
+  let isShuttingDown = false;
+
+  const shutdown = async (signal: string, server?: CrossPlatformHardwareBridgeServer) => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+    console.log(`\n[Server] Received ${signal}, shutting down gracefully...`);
+    if (server) {
+      await server.stop();
+    }
+    process.exit(0);
+  };
+
+  // Catch unhandled errors to prevent silent exits
+  process.on('uncaughtException', (error) => {
+    console.error('[Server] Uncaught exception:', error);
+    process.exit(1);
+  });
+
+  process.on('unhandledRejection', (reason) => {
+    console.error('[Server] Unhandled promise rejection:', reason);
+  });
+
   const server = new CrossPlatformHardwareBridgeServer();
+  console.log('Server instance created');
 
   // Handle graceful shutdown
-  process.on('SIGINT', async () => {
-    console.log('\nReceived SIGINT, shutting down gracefully...');
-    await server.stop();
-    process.exit(0);
-  });
+  process.on('SIGINT', () => shutdown('SIGINT', server));
+  process.on('SIGTERM', () => shutdown('SIGTERM', server));
 
-  process.on('SIGTERM', async () => {
-    console.log('\nReceived SIGTERM, shutting down gracefully...');
-    await server.stop();
-    process.exit(0);
-  });
-
-  // Start the server
+  console.log('Starting server...');
   await server.start();
+  console.log('Server started successfully');
 }
 
-// Run the server
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Run the server - use a robust check that works with tsx, node, and compiled JS
+const scriptName = process.argv[1]?.replace(/\\/g, '/').split('/').pop()?.replace(/\.(ts|js)$/, '');
+const isMainModule = scriptName === 'server';
+
+if (isMainModule) {
   main().catch(error => {
     console.error('Fatal error:', error);
+    console.error('Error stack:', error.stack);
     process.exit(1);
   });
 }

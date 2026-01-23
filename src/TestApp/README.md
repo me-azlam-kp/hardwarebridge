@@ -2,7 +2,7 @@
 
 This directory contains test applications that demonstrate how to use the Hardware Bridge Client library to connect to the Hardware Bridge server and perform various operations including printing.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Hardware Bridge server running (default: `ws://localhost:9443`)
@@ -22,34 +22,34 @@ npm start
 node simple-test-app.js
 ```
 
-## 📋 What the Test App Does
+## What the Test App Does
 
 The test application demonstrates:
 
-1. **🔌 Connection Management**
+1. **Connection Management**
    - Connects to the Hardware Bridge WebSocket server
    - Handles connection events and errors
    - Graceful disconnection
 
-2. **📊 System Information**
+2. **System Information**
    - Retrieves server version and platform info
    - Gets server uptime statistics
 
-3. **🔍 Device Discovery**
+3. **Device Discovery**
    - Enumerates all available devices
    - Gets detailed information about specific devices
    - Shows device capabilities and status
 
-4. **🖨️ Printer Operations**
+4. **Printer Operations**
    - Gets printer status and capabilities
    - Sends print jobs in different formats
    - Demonstrates ESC/POS, ZPL, and EPL protocols
 
-5. **📦 Queue Management**
+5. **Queue Management**
    - Checks queue status and statistics
    - Lists jobs in the print queue
 
-## 🖨️ Print Formats Demonstrated
+## Print Formats Demonstrated
 
 The test app shows how to print content in different formats:
 
@@ -99,7 +99,7 @@ P1
 `;
 ```
 
-## 🔧 Customization
+## Customization
 
 You can modify the test app to:
 
@@ -108,7 +108,7 @@ You can modify the test app to:
 - **Test different devices**: Modify device selection logic
 - **Custom print content**: Update the `generateDemoContent()` methods
 
-## 📡 WebSocket Protocol
+## WebSocket Protocol
 
 The test app uses JSON-RPC 2.0 over WebSocket:
 
@@ -125,13 +125,13 @@ The test app uses JSON-RPC 2.0 over WebSocket:
 }
 ```
 
-## 🚨 Important Notes
+## Important Notes
 
 - **Simulated Devices**: The current server only provides simulated device responses
 - **No Real Printing**: Print jobs are simulated and don't actually print to physical devices
 - **Testing Only**: This is designed for testing the API and protocol, not production printing
 
-## 🎯 Next Steps
+## Next Steps
 
 To add real printer support, you would need to:
 
@@ -141,7 +141,7 @@ To add real printer support, you would need to:
 4. **Handle Authentication**: Support printer authentication if required
 5. **Add Error Handling**: Implement network error recovery
 
-## 📚 Related Files
+## Related Files
 
 - `simple-test-app.js` - Main test application using direct WebSocket
 - `test-app.js` - Advanced test app (requires proper client library loading)

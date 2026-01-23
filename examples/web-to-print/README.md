@@ -1,21 +1,21 @@
-# 🖨️ Hardware Bridge Web-to-Print Application
+# Hardware Bridge Web-to-Print Application
 
 A modern, professional web-to-print application that demonstrates how to use the **@hardwarebridge/client** npm package to create a complete printing solution with hardware device support.
 
-## 🌟 Features
+## Features
 
-- ✅ **Modern ES6+ JavaScript** with ES modules
-- ✅ **Professional UI/UX** with Bootstrap 5 and custom styling
-- ✅ **Multi-format printing** (Raw, ESC/POS, ZPL, EPL)
-- ✅ **Real-time device discovery** and management
-- ✅ **Queue management** with live status updates
-- ✅ **Print preview** with character counting
-- ✅ **Responsive design** for all devices
-- ✅ **Comprehensive error handling** and logging
-- ✅ **Accessibility features** and keyboard navigation
-- ✅ **Professional styling** with gradients and animations
+- **Modern ES6+ JavaScript** with ES modules
+- **Professional UI/UX** with Bootstrap 5 and custom styling
+- **Multi-format printing** (Raw, ESC/POS, ZPL, EPL)
+- **Real-time device discovery** and management
+- **Queue management** with live status updates
+- **Print preview** with character counting
+- **Responsive design** for all devices
+- **Comprehensive error handling** and logging
+- **Accessibility features** and keyboard navigation
+- **Professional styling** with gradients and animations
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js 22+ installed
@@ -38,7 +38,7 @@ npm run dev
 ### Open in Browser
 Navigate to: `http://localhost:3001`
 
-## 📋 Application Structure
+## Application Structure
 
 ```
 examples/web-to-print/
@@ -49,7 +49,7 @@ examples/web-to-print/
 └── README.md           # This documentation
 ```
 
-## 🎯 How to Use
+## How to Use
 
 ### 1. Connect to Hardware Bridge
 - Click **"Connect"** to establish WebSocket connection
@@ -78,7 +78,7 @@ examples/web-to-print/
 - View real-time queue status
 - Get confirmation with job ID
 
-## 🖨️ Print Format Examples
+## Print Format Examples
 
 ### Raw Text Format
 ```
@@ -134,7 +134,7 @@ B5,86,0,1,2,2,100,B,"20240122001"
 P1
 ```
 
-## 🔧 Technical Implementation
+## Technical Implementation
 
 ### Using the Hardware Bridge Client
 
@@ -177,7 +177,7 @@ const status = await client.getQueueStatus();
 const jobs = await client.getQueueJobs();
 ```
 
-## 🎨 UI/UX Features
+## UI/UX Features
 
 - **Modern Design**: Gradient backgrounds, rounded corners, smooth animations
 - **Responsive Layout**: Works on desktop, tablet, and mobile
@@ -186,7 +186,7 @@ const jobs = await client.getQueueJobs();
 - **Accessibility**: Proper ARIA labels, keyboard navigation
 - **Loading States**: Visual feedback during operations
 
-## 📊 Queue Management
+## Queue Management
 
 The application includes comprehensive queue management:
 
@@ -195,14 +195,14 @@ The application includes comprehensive queue management:
 - **Queue Control**: Refresh and clear queue functionality
 - **Statistics**: Total, pending, processing, completed job counts
 
-## 🔒 Security Features
+## Security Features
 
 - **Input Validation**: All user inputs are validated
 - **Error Handling**: Comprehensive error handling and user feedback
 - **Connection Security**: WebSocket connection with proper error handling
 - **Data Sanitization**: Safe handling of user data
 
-## 🧪 Testing
+## Testing
 
 ### Manual Testing
 1. Start the Hardware Bridge server
@@ -221,7 +221,7 @@ The application includes comprehensive queue management:
 node test.js
 ```
 
-## 🚀 Advanced Features
+## Advanced Features
 
 ### Real-time Device Events
 ```javascript
@@ -266,14 +266,14 @@ try {
 }
 ```
 
-## 📚 Additional Resources
+## Additional Resources
 
 - **Full API Documentation**: See the main README in the package
 - **Examples**: Check out the test applications in `src/TestApp/`
 - **Hardware Bridge Server**: Ensure server is running on port 8443
 - **TypeScript Support**: Full type definitions included
 
-## 🎯 Next Steps
+## Next Steps
 
 1. **Customize the UI** - Modify colors, layout, branding
 2. **Add more features** - Barcode generation, QR codes, images
@@ -281,15 +281,15 @@ try {
 4. **Deploy to production** - Cloud hosting, CDN, monitoring
 5. **Extend functionality** - Mobile app, API integrations
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Please see the main repository for contribution guidelines.
 
-## 📄 License
+## License
 
 MIT License - see LICENSE file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Built with **@hardwarebridge/client** npm package
 - Styled with **Bootstrap 5** and custom CSS
@@ -297,7 +297,5 @@ MIT License - see LICENSE file for details.
 - Inspired by modern web development practices
 
 ---
-
-**Happy Printing!** 🖨️✨
 
 **Developed by Azlam**

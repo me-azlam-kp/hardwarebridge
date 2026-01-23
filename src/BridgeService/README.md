@@ -1,39 +1,39 @@
-# 🔧 Hardware Bridge Service
+# Hardware Bridge Service
 
 A comprehensive .NET-based hardware automation service that provides secure WebSocket communication, device management, and printing capabilities for Windows environments.
 
-## 🎯 Overview
+## Overview
 
 The Hardware Bridge Service is a Windows desktop application built with .NET 10.0 that acts as a bridge between web applications and hardware devices. It provides a secure WebSocket server, device management, and comprehensive printing capabilities.
 
-## 🚀 Key Features
+## Key Features
 
-### 🔌 **Device Management**
+### Device Management
 - **Serial Port Communication**: Full serial port support with configurable settings
 - **USB HID Device Support**: Direct USB HID device communication
 - **Printer Management**: Comprehensive printer discovery and management
 - **Device Discovery**: Automatic detection of connected hardware devices
 
-### 🖨️ **Printing Capabilities**
+### Printing Capabilities
 - **ESC/POS Support**: Thermal receipt printer protocol
 - **ZPL Support**: Zebra Programming Language for label printers
 - **EPL Support**: Eltron Programming Language
 - **Raw Text Printing**: Direct text output to printers
 - **Print Queue Management**: Advanced queue system with priority handling
 
-### 🔐 **Security & Communication**
+### Security & Communication
 - **Secure WebSocket Server**: WSS support with certificate management
 - **JSON-RPC Protocol**: Standardized communication protocol
 - **Offline Queue Management**: Persistent queue storage during disconnections
 - **Certificate Management**: SSL/TLS certificate handling
 
-### 🛠️ **System Integration**
+### System Integration
 - **Windows Service Integration**: Can run as a Windows service
 - **Task Scheduling**: Built-in task scheduler for automated operations
 - **Logging System**: Comprehensive logging with multiple levels
 - **Settings Management**: Persistent configuration storage
 
-## 📋 Prerequisites
+## Prerequisites
 
 ### System Requirements
 - **Operating System**: Windows 10/11 or Windows Server 2019+
@@ -46,7 +46,7 @@ The Hardware Bridge Service is a Windows desktop application built with .NET 10.
 - **Visual Studio 2022**: Community edition or higher
 - **Windows SDK**: Latest version recommended
 
-## 🛠️ Installation & Setup
+## Installation & Setup
 
 ### 1. Clone and Build
 ```bash
@@ -78,7 +78,7 @@ dotnet run -- install-service
 net start HardwareBridgeService
 ```
 
-## 🔧 Configuration
+## Configuration
 
 ### WebSocket Server Settings
 The service runs a WebSocket server on port 8443 by default. Configuration is stored in `appsettings.json`:
@@ -127,7 +127,7 @@ Devices are automatically discovered and configured. Manual device configuration
 }
 ```
 
-## 📡 API Reference
+## API Reference
 
 ### WebSocket Connection
 Connect to the WebSocket server at `ws://localhost:8443` or `wss://localhost:8443` for SSL.
@@ -168,7 +168,7 @@ Connect to the WebSocket server at `ws://localhost:8443` or `wss://localhost:844
 }
 ```
 
-## 🧪 Testing
+## Testing
 
 ### Unit Tests
 ```bash
@@ -188,7 +188,7 @@ dotnet test --filter Category=Integration
 ### Manual Testing
 Use the provided test harness in `src/TestHarness/` for manual testing of device connections and printing functionality.
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -226,7 +226,7 @@ Enable debug logging in `appsettings.json`:
 }
 ```
 
-## 📊 Performance Optimization
+## Performance Optimization
 
 ### Memory Management
 - Implement proper disposal patterns for device connections
@@ -243,7 +243,7 @@ Enable debug logging in `appsettings.json`:
 - Implement smart caching for frequently accessed data
 - Use memory-efficient data structures
 
-## 🔒 Security Considerations
+## Security Considerations
 
 ### Certificate Management
 - Use valid SSL certificates in production
@@ -260,7 +260,7 @@ Enable debug logging in `appsettings.json`:
 - Implement secure key storage
 - Use secure communication protocols
 
-## 🚀 Deployment
+## Deployment
 
 ### Production Deployment
 1. **Build for Release**: `dotnet build -c Release`
@@ -277,14 +277,14 @@ WORKDIR /app
 ENTRYPOINT ["HardwareBridge.exe"]
 ```
 
-## 📚 Related Documentation
+## Related Documentation
 
 - **[CrossPlatformServer README](../CrossPlatformServer/README.md)**: Node.js-based cross-platform server
 - **[BridgeClient README](../BridgeClient/README.md)**: JavaScript client library
 - **[Web-to-Print Guide](../../examples/web-to-print/README.md)**: Web application example
 - **[System Architecture](../../CROSS_PLATFORM_SOLUTION.md)**: Overall system design
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -292,11 +292,11 @@ ENTRYPOINT ["HardwareBridge.exe"]
 4. Add unit tests
 5. Submit a pull request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](../../LICENSE) file for details.
 
-## 🆘 Support
+## Support
 
 For support and questions:
 - **Issues**: Create an issue in the repository

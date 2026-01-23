@@ -1,44 +1,44 @@
-# 🌐 Cross Platform Server
+# Cross Platform Server
 
 A modern Node.js-based cross-platform hardware automation server that provides WebSocket communication, device management, and printing capabilities across Windows, macOS, and Linux.
 
-## 🎯 Overview
+## Overview
 
 The Cross Platform Server is a Node.js application that serves as the central communication hub for hardware devices. It provides a unified WebSocket API for device discovery, printing, and queue management, working seamlessly across all major operating systems.
 
-## 🚀 Key Features
+## Key Features
 
-### 🔌 **Cross-Platform Compatibility**
+### Cross-Platform Compatibility
 - **Windows**: Full native support with all device types
 - **macOS**: Complete support including USB and serial devices
 - **Linux**: Comprehensive support with device permissions
 - **Node.js 22+**: Built for the latest Node.js LTS
 
-### 🖨️ **Advanced Printing System**
+### Advanced Printing System
 - **Multi-Format Support**: ESC/POS, ZPL, EPL, Raw text
 - **Print Queue Management**: Persistent queue with priority handling
 - **Real-Time Status**: Live queue updates and job status
 - **Error Recovery**: Automatic retry and error handling
 
-### 🔗 **WebSocket Communication**
+### WebSocket Communication
 - **JSON-RPC Protocol**: Standardized communication
 - **Real-Time Updates**: Live device and queue status
 - **Connection Management**: Robust connection handling
 - **Broadcasting**: Multi-client synchronization
 
-### 💾 **Database Integration**
+### Database Integration
 - **SQLite Database**: Lightweight, embedded database
 - **Persistent Queue**: Jobs survive server restarts
 - **Device History**: Complete device interaction logs
 - **Statistics**: Usage analytics and reporting
 
-### 🛡️ **Security & Reliability**
+### Security & Reliability
 - **Connection Validation**: Input sanitization and validation
 - **Error Handling**: Comprehensive error management
 - **Logging System**: Detailed operation logging
 - **Graceful Shutdown**: Clean resource management
 
-## 📋 Prerequisites
+## Prerequisites
 
 ### System Requirements
 - **Node.js**: v22.12.0 or higher (LTS recommended)
@@ -50,7 +50,7 @@ The Cross Platform Server is a Node.js application that serves as the central co
 - **Code Editor**: VS Code, WebStorm, or similar
 - **Terminal**: Command line access
 
-## 🛠️ Installation & Setup
+## Installation & Setup
 
 ### 1. Clone and Install
 ```bash
@@ -107,7 +107,7 @@ npm start
 PORT=8080 npm start
 ```
 
-## 📡 API Reference
+## API Reference
 
 ### WebSocket Connection
 Connect to the WebSocket server at `ws://localhost:9443` or `wss://localhost:9443` for SSL.
@@ -175,7 +175,7 @@ Connect to the WebSocket server at `ws://localhost:9443` or `wss://localhost:944
 }
 ```
 
-## 🧪 Testing
+## Testing
 
 ### Unit Tests
 ```bash
@@ -204,7 +204,7 @@ Use the provided test applications:
 - **Enhanced Test**: Use the test applications in `src/TestApp/`
 - **Web Interface**: Use the web-to-print application in `examples/web-to-print/`
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -248,7 +248,7 @@ Check the log files in the `logs/` directory for detailed error information:
 - `error.log`: Error-specific logs
 - `debug.log`: Debug information (when enabled)
 
-## 📊 Performance Optimization
+## Performance Optimization
 
 ### Memory Management
 - **Connection Pooling**: Reuse WebSocket connections
@@ -265,7 +265,7 @@ Check the log files in the `logs/` directory for detailed error information:
 - **Metrics Collection**: Monitor performance metrics
 - **Alerting**: Set up alerts for critical issues
 
-## 🔒 Security Considerations
+## Security Considerations
 
 ### Production Security
 - **SSL/TLS**: Always use SSL in production
@@ -283,14 +283,14 @@ Check the log files in the `logs/` directory for detailed error information:
 - **Backup Strategy**: Regular database backups
 - **Access Control**: Implement proper access controls
 
-## 🚀 Deployment
+## Deployment
 
 ### Production Deployment
 1. **Environment Setup**:
    ```bash
    # Set production environment
    export NODE_ENV=production
-   
+
    # Install production dependencies only
    npm ci --only=production
    ```
@@ -299,10 +299,10 @@ Check the log files in the `logs/` directory for detailed error information:
    ```bash
    # Install PM2 globally
    npm install -g pm2
-   
+
    # Start with PM2
    pm2 start ecosystem.config.js
-   
+
    # Save PM2 configuration
    pm2 save
    pm2 startup
@@ -346,14 +346,14 @@ RestartSec=10
 WantedBy=multi-user.target
 ```
 
-## 📚 Related Documentation
+## Related Documentation
 
 - **[BridgeService README](../BridgeService/README.md)**: .NET-based Windows service
 - **[BridgeClient README](../BridgeClient/README.md)**: JavaScript client library
 - **[Web-to-Print Guide](../../examples/web-to-print/README.md)**: Web application example
 - **[System Architecture](../../CROSS_PLATFORM_SOLUTION.md)**: Overall system design
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -361,11 +361,11 @@ WantedBy=multi-user.target
 4. Add tests
 5. Submit a pull request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](../../LICENSE) file for details.
 
-## 🆘 Support
+## Support
 
 For support and questions:
 - **Issues**: Create an issue in the repository
